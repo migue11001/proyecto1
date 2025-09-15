@@ -15,7 +15,7 @@ function openLogin() {
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h3>Accedi al Portfolio</h3>
+                <h3>Accedi al Portfoglio</h3>
                 <span class="close-modal" onclick="closeLoginModal()">&times;</span>
             </div>
             <div class="modal-body">

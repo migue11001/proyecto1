@@ -41,7 +41,7 @@
             <a href="videos-en.html" class="nav-button active">PORTFOLIO</a>
         </div>
         
-        <div class="portfolio-controls">
+        <div class="portfolio-controls" style="display:none;">
             <button class="add-project-btn" onclick="openAddProject()">+ Add Project</button>
         </div>
 
@@ -50,13 +50,18 @@
             <div class="project-card">
                 <div class="project-header">
                     <h3>Complex Aluminum Milling</h3>
-                    <span class="project-status">Available</span>
                 </div>
                 
                 <div class="project-media">
-                    <div class="media-upload-area" onclick="uploadMedia(1)">
+                    <div class="media-upload-area admin-only" onclick="uploadMedia(1)" style="display:none;">
                         <span>📹 Upload Video/Image</span>
                         <input type="file" id="media-1" accept="video/*,image/*" style="display:none">
+                    </div>
+                    <div class="media-placeholder">
+                        <div class="placeholder-content">
+                            <span>🎬</span>
+                            <p>Demo video available</p>
+                        </div>
                     </div>
                 </div>
 
@@ -89,12 +94,13 @@ M30
                     </pre>
                 </div>
 
-                <div class="project-actions">
+                <div class="project-actions" style="display:none;">
                     <button class="download-btn">📥 Download Files</button>
-                    <span class="consultation-price" style="display:none;">Consultation: €45/hour</span>
-                    <span class="login-required" style="display:block;">
-                        <button onclick="openLogin()" class="price-login-btn">🔒 Login for prices</button>
-                    </span>
+                    <span class="consultation-price">Consultation: €45/hour</span>
+                </div>
+                
+                <div class="public-cta">
+                    <p>Interested in this project? <a href="#" onclick="openLogin()" class="contact-link">Contact me for more information</a></p>
                 </div>
             </div>
 
@@ -102,13 +108,18 @@ M30
             <div class="project-card">
                 <div class="project-header">
                     <h3>Precision Steel Turning</h3>
-                    <span class="project-status">Available</span>
                 </div>
                 
                 <div class="project-media">
-                    <div class="media-upload-area" onclick="uploadMedia(2)">
+                    <div class="media-upload-area admin-only" onclick="uploadMedia(2)" style="display:none;">
                         <span>📹 Upload Video/Image</span>
                         <input type="file" id="media-2" accept="video/*,image/*" style="display:none">
+                    </div>
+                    <div class="media-placeholder">
+                        <div class="placeholder-content">
+                            <span>⚙️</span>
+                            <p>Demo video available</p>
+                        </div>
                     </div>
                 </div>
 
@@ -139,12 +150,13 @@ M30
                     </pre>
                 </div>
 
-                <div class="project-actions">
+                <div class="project-actions" style="display:none;">
                     <button class="download-btn">📥 Download Files</button>
-                    <span class="consultation-price" style="display:none;">Consultation: €45/hour</span>
-                    <span class="login-required" style="display:block;">
-                        <button onclick="openLogin()" class="price-login-btn">🔒 Login for prices</button>
-                    </span>
+                    <span class="consultation-price">Consultation: €45/hour</span>
+                </div>
+                
+                <div class="public-cta">
+                    <p>Interested in this project? <a href="#" onclick="openLogin()" class="contact-link">Contact me for more information</a></p>
                 </div>
             </div>
 
@@ -152,13 +164,18 @@ M30
             <div class="project-card">
                 <div class="project-header">
                     <h3>5-Axis Titanium Machining</h3>
-                    <span class="project-status">Premium</span>
                 </div>
                 
                 <div class="project-media">
-                    <div class="media-upload-area" onclick="uploadMedia(3)">
+                    <div class="media-upload-area admin-only" onclick="uploadMedia(3)" style="display:none;">
                         <span>📹 Upload Video/Image</span>
                         <input type="file" id="media-3" accept="video/*,image/*" style="display:none">
+                    </div>
+                    <div class="media-placeholder">
+                        <div class="placeholder-content">
+                            <span>✈️</span>
+                            <p>Demo video available</p>
+                        </div>
                     </div>
                 </div>
 
@@ -193,12 +210,13 @@ M30
                     </pre>
                 </div>
 
-                <div class="project-actions">
+                <div class="project-actions" style="display:none;">
                     <button class="download-btn">📥 Download Files</button>
-                    <span class="consultation-price" style="display:none;">Consultation: €65/hour</span>
-                    <span class="login-required" style="display:block;">
-                        <button onclick="openLogin()" class="price-login-btn">🔒 Login for prices</button>
-                    </span>
+                    <span class="consultation-price">Consultation: €65/hour</span>
+                </div>
+                
+                <div class="public-cta">
+                    <p>Interested in this project? <a href="#" onclick="openLogin()" class="contact-link">Contact me for more information</a></p>
                 </div>
             </div>
         </section>
