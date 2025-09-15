@@ -8,7 +8,7 @@ from django.conf.urls.static import static
 from django.http import JsonResponse
 
 def api_root(request):
-    return JsonResponse({
+    response = JsonResponse({
         'message': 'PROSIMULATOR Backend API',
         'version': '1.0',
         'status': 'running',
@@ -19,6 +19,8 @@ def api_root(request):
             'stats': '/api/stats/'
         }
     })
+    response.status_code = 200
+    return response
 
 urlpatterns = [
     path('', api_root, name='api-root'),
