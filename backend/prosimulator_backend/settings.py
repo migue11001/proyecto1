@@ -76,6 +76,8 @@ WSGI_APPLICATION = 'prosimulator_backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration
+import dj_database_url
+
 if config('USE_SQLITE', default=False, cast=bool):
     DATABASES = {
         'default': {
@@ -84,16 +86,24 @@ if config('USE_SQLITE', default=False, cast=bool):
         }
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='prosimulator_db'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
+    # Use DATABASE_URL for production (Railway)
+    DATABASE_URL = config('DATABASE_URL', default=None)
+    if DATABASE_URL:
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL)
         }
-    }
+    else:
+        # Fallback for local development
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DB_NAME', default='prosimulator_db'),
+                'USER': config('DB_USER', default='postgres'),
+                'PASSWORD': config('DB_PASSWORD', default=''),
+                'HOST': config('DB_HOST', default='localhost'),
+                'PORT': config('DB_PORT', default='5432'),
+            }
+        }
 
 
 # Password validation
