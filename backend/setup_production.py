@@ -42,10 +42,7 @@ def setup_production():
         create_sample_projects()
         print("✅ Proyectos de ejemplo creados")
     
-    # 3. Crear usuarios demo solo si se especifica
-    if os.environ.get('CREATE_DEMO_USERS') == 'true':
-        create_demo_users()
-        print("✅ Usuarios demo creados")
+    # No demo users for privacy
 
 def create_sample_projects():
     # Proyectos seguros sin datos sensibles

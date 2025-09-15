@@ -44,12 +44,6 @@ function openLogin() {
                     <a href="#" onclick="showRegister()" style="color: var(--accent-orange); text-decoration: none;">Registrati</a>
                 </p>
                 
-                <div class="demo-login" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--accent-orange);">
-                    <p style="color: var(--text-light); text-align: center; margin-bottom: 1rem;">Account Demo:</p>
-                    <button onclick="loginDemo()" style="width: 100%; background: rgba(252, 163, 17, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); padding: 0.8rem; border-radius: 8px; cursor: pointer;">
-                        🚀 Accesso Demo
-                    </button>
-                </div>
             </div>
         </div>
     `;
@@ -74,35 +68,7 @@ function closeLoginModal() {
     }
 }
 
-async function loginDemo() {
-    // Demo login con credenciales reales
-    try {
-        const response = await window.API.login({
-            username: 'demo@prosimulator.com',
-            password: 'demo123'
-        });
-        
-        userState.isAuthenticated = true;
-        userState.username = response.user.username || response.user.email;
-        userState.userType = response.is_subscribed ? 'subscribed' : 'registered';
-        
-        updateUserInterface();
-        closeLoginModal();
-        
-        showNotification('✅ Accesso demo effettuato!', 'success');
-    } catch (error) {
-        console.error('Demo login failed:', error);
-        // Fallback to old demo behavior
-        userState.isAuthenticated = true;
-        userState.username = 'Demo User';
-        userState.userType = 'registered';
-        
-        updateUserInterface();
-        closeLoginModal();
-        
-        showNotification('✅ Accesso demo locale effettuato!', 'success');
-    }
-}
+// Demo function removed for privacy
 
 function logout() {
     // Clear API tokens
