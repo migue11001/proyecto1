@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Virtual environment
+backend/venv/
+backend/env/
+backend/.venv/
+
+# Environment variables
+backend/.env
+.env
+
+# Sensitive scripts (usar solo en desarrollo local)
+backend/create_superuser.py
+backend/create_demo_user.py
+backend/populate_data.py
+
+# Media files (uploads)
+backend/media/
+
+# Static files
+backend/staticfiles/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Node modules (if any)
+node_modules/

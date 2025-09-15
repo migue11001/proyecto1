@@ -1,12 +1,23 @@
 // Portfolio JavaScript - Gestione interattiva progetti CNC
-// Sistema di autenticazione integrato
+// Sistema di autenticazione integrato con Backend Django
 
-// Stato utente
+// Stato utente - sincronizado con API
 let userState = {
     isAuthenticated: false,
     username: null,
-    userType: 'guest' // guest, registered, premium
+    userType: 'guest' // guest, registered, subscribed
 };
+
+// Initialize from API on load
+function initializeUserState() {
+    if (window.isUserAuthenticated && window.isUserAuthenticated()) {
+        const userData = window.getUserData();
+        userState.isAuthenticated = true;
+        userState.username = userData.username || userData.email;
+        userState.userType = window.isUserSubscribed() ? 'subscribed' : 'registered';
+        updateUserInterface();
+    }
+}
 
 // Funzioni di autenticazione
 function openLogin() {
@@ -20,8 +31,8 @@ function openLogin() {
             </div>
             <div class="modal-body">
                 <form class="login-form">
-                    <input type="email" placeholder="Email" required>
-                    <input type="password" placeholder="Password" required>
+                    <input type="text" name="username" placeholder="Username o Email" required>
+                    <input type="password" name="password" placeholder="Password" required>
                     
                     <div class="form-actions">
                         <button type="submit">Accedi</button>
@@ -63,20 +74,42 @@ function closeLoginModal() {
     }
 }
 
-function loginDemo() {
-    // Simula login demo
-    userState.isAuthenticated = true;
-    userState.username = 'Demo User';
-    userState.userType = 'registered';
-    
-    updateUserInterface();
-    closeLoginModal();
-    
-    // Notifica successo
-    showNotification('✅ Accesso effettuato! Ora puoi vedere i prezzi.', 'success');
+async function loginDemo() {
+    // Demo login con credenciales reales
+    try {
+        const response = await window.API.login({
+            username: 'demo@prosimulator.com',
+            password: 'demo123'
+        });
+        
+        userState.isAuthenticated = true;
+        userState.username = response.user.username || response.user.email;
+        userState.userType = response.is_subscribed ? 'subscribed' : 'registered';
+        
+        updateUserInterface();
+        closeLoginModal();
+        
+        showNotification('✅ Accesso demo effettuato!', 'success');
+    } catch (error) {
+        console.error('Demo login failed:', error);
+        // Fallback to old demo behavior
+        userState.isAuthenticated = true;
+        userState.username = 'Demo User';
+        userState.userType = 'registered';
+        
+        updateUserInterface();
+        closeLoginModal();
+        
+        showNotification('✅ Accesso demo locale effettuato!', 'success');
+    }
 }
 
 function logout() {
+    // Clear API tokens
+    if (window.clearAuthTokens) {
+        window.clearAuthTokens();
+    }
+    
     userState.isAuthenticated = false;
     userState.username = null;
     userState.userType = 'guest';
@@ -517,28 +550,25 @@ const styleElement = document.createElement('style');
 styleElement.textContent = modalStyles;
 document.head.appendChild(styleElement);
 
-// Inizializzazione
+// Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Portfolio CNC Pro - Sistema caricato con autenticazione');
+    console.log('Portfolio CNC Pro - Sistema caricato con autenticazione Django');
     
-    // Inizializza interfaccia utente
-    updateUserInterface();
+    // Inizializza stato utente da API
+    if (typeof initializeUserState === 'function') {
+        initializeUserState();
+    } else {
+        updateUserInterface();
+    }
     
-    // Aggiungere event listeners per form submissions
+    // Load projects from API
+    loadProjectsFromAPI();
+    
+    // Event listeners per form submissions
     document.addEventListener('submit', function(e) {
         if (e.target.classList.contains('login-form')) {
             e.preventDefault();
-            // Simula login reale (in produzione si farebbe chiamata API)
-            const email = e.target.querySelector('input[type="email"]').value;
-            
-            userState.isAuthenticated = true;
-            userState.username = email.split('@')[0];
-            userState.userType = 'registered';
-            
-            updateUserInterface();
-            closeLoginModal();
-            
-            showNotification(`✅ Benvenuto ${userState.username}! Ora puoi vedere i prezzi.`, 'success');
+            handleLoginSubmit(e.target);
         }
         
         if (e.target.classList.contains('contact-form')) {
@@ -561,3 +591,259 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => loginDemo(), 1000);
     }
 });
+
+// New API integration functions
+async function handleLoginSubmit(form) {
+    const formData = new FormData(form);
+    const username = formData.get('username');
+    const password = formData.get('password');
+    
+    try {
+        const response = await window.API.login({ username, password });
+        
+        userState.isAuthenticated = true;
+        userState.username = response.user.username || response.user.email;
+        userState.userType = response.is_subscribed ? 'subscribed' : 'registered';
+        
+        updateUserInterface();
+        closeLoginModal();
+        
+        const subscriptionStatus = response.is_subscribed ? 'suscriptor' : 'registrado';
+        showNotification(`✅ Benvenuto ${userState.username}! (${subscriptionStatus})`, 'success');
+        
+    } catch (error) {
+        console.error('Login failed:', error);
+        showNotification('❌ Credenziali non valide. Riprova.', 'warning');
+    }
+}
+
+async function loadProjectsFromAPI() {
+    try {
+        const projects = await window.API.getProjects();
+        console.log('Projects loaded from API:', projects);
+        
+        // Update project cards with real data
+        updateProjectCards(projects.results || projects);
+        
+    } catch (error) {
+        console.error('Failed to load projects:', error);
+        showNotification('⚠️ Errore nel caricamento progetti. Usando dati locali.', 'warning');
+    }
+}
+
+function updateProjectCards(projects) {
+    const portfolioGrid = document.querySelector('.portfolio-grid');
+    if (!portfolioGrid || projects.length === 0) return;
+    
+    // Clear existing cards except templates
+    const existingCards = portfolioGrid.querySelectorAll('.project-card');
+    existingCards.forEach(card => card.remove());
+    
+    // Create new cards from API data
+    projects.forEach((project, index) => {
+        const projectCard = createProjectCard(project, index + 1);
+        portfolioGrid.appendChild(projectCard);
+    });
+}
+
+function createProjectCard(project, index) {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.innerHTML = `
+        <div class="project-header">
+            <h3>${project.title}</h3>
+        </div>
+        
+        <div class="project-media">
+            <div class="media-upload-area admin-only" onclick="uploadMedia(${index})" style="display:none;">
+                <span>📹 Carica Video/Immagine</span>
+                <input type="file" id="media-${index}" accept="video/*,image/*" style="display:none">
+            </div>
+            <div class="media-placeholder">
+                <div class="placeholder-content">
+                    <span>${getProcessIcon(project.process_type)}</span>
+                    <p>Video dimostrativo disponibile</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="project-description">
+            <p>${project.description}</p>
+        </div>
+
+        <div class="cnc-code-section">
+            <h4>Codice CNC <span class="toggle-code" onclick="toggleCode(${index})">👁️</span></h4>
+            <pre class="cnc-code" id="code-${index}" style="display:none">
+${project.cnc_code || 'Codice disponibile dopo la sottoscrizione...'}
+            </pre>
+        </div>
+
+        <div class="project-actions" style="display:none;">
+            <button class="download-btn">📥 Scarica Files</button>
+            <span class="consultation-price">Consulenza: €${project.consultation_price}/ora</span>
+        </div>
+        
+        <div class="public-cta">
+            <p>Interessato a questo progetto? <a href="#" onclick="openLogin()" class="contact-link">Contattami per maggiori informazioni</a></p>
+        </div>
+    `;
+    
+    return card;
+}
+
+function getProcessIcon(processType) {
+    const icons = {
+        'milling': '🎬',
+        'turning': '⚙️',
+        '5axis': '✈️',
+        'multiaxis': '🔧'
+    };
+    return icons[processType] || '🔧';
+}
+
+// Enhanced explanation request with subscription check
+async function requestExplanation(type) {
+    if (!userState.isAuthenticated) {
+        showNotification('🔒 Devi effettuare l\'accesso per vedere le spiegazioni.', 'warning');
+        setTimeout(() => openLogin(), 1000);
+        return;
+    }
+    
+    // Check if user is subscribed
+    if (!window.isUserSubscribed()) {
+        showSubscriptionModal(type);
+        return;
+    }
+    
+    // User is subscribed, show explanation
+    try {
+        // Find explanation ID based on type (this would need to be properly mapped)
+        const explanationId = getExplanationIdByType(type);
+        const response = await window.API.checkExplanationAccess(explanationId);
+        
+        if (response.has_access) {
+            showExplanationModal(type, response.explanation_text);
+        } else {
+            showSubscriptionModal(type);
+        }
+    } catch (error) {
+        console.error('Failed to get explanation:', error);
+        showNotification('❌ Errore nel caricamento spiegazione.', 'warning');
+    }
+}
+
+function showSubscriptionModal(explanationType) {
+    const modal = document.createElement('div');
+    modal.className = 'subscription-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sottoscrizione Richiesta</h3>
+                <span class="close-modal" onclick="closeSubscriptionModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Per accedere alle spiegazioni dettagliate del codice CNC, è necessario sottoscrivere il servizio premium.</p>
+                
+                <div class="subscription-offer">
+                    <h4>🚀 Abbonamento Premium</h4>
+                    <p class="price">Solo <strong>£5/mese</strong></p>
+                    <ul>
+                        <li>✅ Accesso a tutte le spiegazioni</li>
+                        <li>✅ Download dei file</li>
+                        <li>✅ Supporto prioritario</li>
+                    </ul>
+                </div>
+                
+                <div class="form-actions">
+                    <button onclick="closeSubscriptionModal()">Chiudi</button>
+                    <button onclick="handleSubscription()" style="background: var(--accent-orange); color: var(--primary-dark);">Sottoscrivi Ora</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+    }, 10);
+}
+
+function closeSubscriptionModal() {
+    const modal = document.querySelector('.subscription-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        modal.querySelector('.modal-content').style.transform = 'translateY(-50px)';
+        setTimeout(() => modal.remove(), 300);
+    }
+}
+
+async function handleSubscription() {
+    try {
+        const response = await window.API.subscribe();
+        
+        // Update user state
+        userState.userType = 'subscribed';
+        const userData = window.getUserData();
+        userData.is_subscribed = true;
+        
+        closeSubscriptionModal();
+        showNotification('🎉 Sottoscrizione attivata! Ora puoi accedere a tutte le spiegazioni.', 'success');
+        
+        // Update UI to show subscription features
+        updateUserInterface();
+        
+    } catch (error) {
+        console.error('Subscription failed:', error);
+        showNotification('❌ Errore nella sottoscrizione. Riprova.', 'warning');
+    }
+}
+
+function getExplanationIdByType(type) {
+    // This would need to be properly mapped based on your actual data
+    const mapping = {
+        'setup': 1,
+        'strategy': 2,
+        'turning': 3,
+        'finishing': 4,
+        '5axis': 5,
+        'titanium': 6,
+        'collision': 7
+    };
+    return mapping[type] || 1;
+}
+
+function showExplanationModal(type, explanationText) {
+    const modal = document.createElement('div');
+    modal.className = 'explanation-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Spiegazione: ${type}</h3>
+                <span class="close-modal" onclick="closeExplanationModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="explanation-content">
+                    <p>${explanationText}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+    }, 10);
+}
+
+function closeExplanationModal() {
+    const modal = document.querySelector('.explanation-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        modal.querySelector('.modal-content').style.transform = 'translateY(-50px)';
+        setTimeout(() => modal.remove(), 300);
+    }
+}
