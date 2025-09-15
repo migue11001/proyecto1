@@ -1,29 +1,29 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#14213D">
-    <title>Portfolio Progetti CNC - Fusion 360 Professional</title>
+    <title>Portfolio Proyectos CNC - Fusion 360 Profesional</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <nav>
             <ul class="nav-left">
-                <li><a href="index.html" class="logo">PROSIMULATOR</a></li>
+                <li><a href="es.html" class="logo">PROSIMULATOR</a></li>
             </ul>
             <ul class="nav-right">
                 <li class="auth-section">
                     <span id="user-status" style="display:none;"></span>
-                    <button id="login-btn" onclick="openLogin()">Accedi</button>
-                    <button id="logout-btn" onclick="logout()" style="display:none;">Esci</button>
+                    <button id="login-btn" onclick="openLogin()">Acceder</button>
+                    <button id="logout-btn" onclick="logout()" style="display:none;">Salir</button>
                 </li>
                 <li class="language-selector">
-                    <a href="index.html" class="active">🇮🇹 IT</a>
+                    <a href="videos.html">🇮🇹 IT</a>
                     <a href="videos-en.html">🇬🇧 EN</a>
-                    <a href="videos-es.html">🇪🇸 ES</a>
+                    <a href="videos-es.html" class="active">🇪🇸 ES</a>
                 </li>
                 <li class="social-links">
                     <a href="#" title="YouTube">📺</a>
@@ -34,54 +34,54 @@
     </header>
 
     <main>
-        <h1 class="main-title">Portfolio Progetti CNC</h1>
+        <h1 class="main-title">Portfolio Proyectos CNC</h1>
         
         <div class="navigation-buttons">
-            <a href="index.html" class="nav-button">INICIO</a>
-            <a href="videos.html" class="nav-button active">PORTFOLIO</a>
+            <a href="es.html" class="nav-button">INICIO</a>
+            <a href="videos-es.html" class="nav-button active">PORTFOLIO</a>
         </div>
         
         <div class="portfolio-controls">
-            <button class="add-project-btn" onclick="openAddProject()">+ Aggiungi Progetto</button>
+            <button class="add-project-btn" onclick="openAddProject()">+ Agregar Proyecto</button>
         </div>
 
         <section class="portfolio-grid">
-            <!-- Progetto 1 - Template -->
+            <!-- Proyecto 1 - Template -->
             <div class="project-card">
                 <div class="project-header">
-                    <h3>Fresatura Complessa Alluminio</h3>
-                    <span class="project-status">Disponibile</span>
+                    <h3>Fresado Complejo Aluminio</h3>
+                    <span class="project-status">Disponible</span>
                 </div>
                 
                 <div class="project-media">
                     <div class="media-upload-area" onclick="uploadMedia(1)">
-                        <span>📹 Carica Video/Immagine</span>
+                        <span>📹 Subir Video/Imagen</span>
                         <input type="file" id="media-1" accept="video/*,image/*" style="display:none">
                     </div>
                 </div>
 
                 <div class="project-description">
-                    <p>Lavorazione di precisione su pezzo in alluminio 7075 con tolleranze ±0.02mm. Strategia multi-asse ottimizzata.</p>
+                    <p>Mecanizado de precisión en pieza de aluminio 7075 con tolerancias ±0.02mm. Estrategia multi-eje optimizada.</p>
                 </div>
 
                 <div class="cnc-code-section">
-                    <h4>Codice CNC <span class="toggle-code" onclick="toggleCode(1)">👁️</span></h4>
+                    <h4>Código CNC <span class="toggle-code" onclick="toggleCode(1)">👁️</span></h4>
                     <pre class="cnc-code" id="code-1" style="display:none">
 G54 G90 G21 G17 G94 G49
-; Preparazione utensile
-M6 T01 (FRESA SGROSSATURA D10)
+; Preparación herramienta
+M6 T01 (FRESA DESBASTE D10)
 G43 H01 M03 S3000
 G00 X0 Y0 Z5
-; Inizio lavorazione
+; Inicio mecanizado
 G01 Z-2 F300
 G01 X50 F800
 G01 Y30
 ; <span class="code-comment" onclick="requestExplanation('setup')">
-    <span class="comment-text">Spiegazione setup</span>
+    <span class="comment-text">Explicación setup</span>
     <span class="comment-price" style="display:none;"> - €15</span>
 </span>
 ; <span class="code-comment" onclick="requestExplanation('strategy')">
-    <span class="comment-text">Strategia taglio</span>
+    <span class="comment-text">Estrategia corte</span>
     <span class="comment-price" style="display:none;"> - €20</span>
 </span>
 G00 Z5
@@ -90,48 +90,48 @@ M30
                 </div>
 
                 <div class="project-actions">
-                    <button class="download-btn">📥 Scarica Files</button>
-                    <span class="consultation-price" style="display:none;">Consulenza: €45/ora</span>
+                    <button class="download-btn">📥 Descargar Archivos</button>
+                    <span class="consultation-price" style="display:none;">Consultoría: €45/hora</span>
                     <span class="login-required" style="display:block;">
-                        <button onclick="openLogin()" class="price-login-btn">🔒 Accedi per prezzi</button>
+                        <button onclick="openLogin()" class="price-login-btn">🔒 Acceder para precios</button>
                     </span>
                 </div>
             </div>
 
-            <!-- Progetto 2 - Template -->
+            <!-- Proyecto 2 - Template -->
             <div class="project-card">
                 <div class="project-header">
-                    <h3>Tornitura di Precisione Acciaio</h3>
-                    <span class="project-status">Disponibile</span>
+                    <h3>Torneado Precisión Acero</h3>
+                    <span class="project-status">Disponible</span>
                 </div>
                 
                 <div class="project-media">
                     <div class="media-upload-area" onclick="uploadMedia(2)">
-                        <span>📹 Carica Video/Immagine</span>
+                        <span>📹 Subir Video/Imagen</span>
                         <input type="file" id="media-2" accept="video/*,image/*" style="display:none">
                     </div>
                 </div>
 
                 <div class="project-description">
-                    <p>Componente tornito in acciaio AISI 316L per settore medicale. Finiture superficiali Ra 0.8.</p>
+                    <p>Componente torneado en acero AISI 316L para sector médico. Acabados superficiales Ra 0.8.</p>
                 </div>
 
                 <div class="cnc-code-section">
-                    <h4>Codice CNC <span class="toggle-code" onclick="toggleCode(2)">👁️</span></h4>
+                    <h4>Código CNC <span class="toggle-code" onclick="toggleCode(2)">👁️</span></h4>
                     <pre class="cnc-code" id="code-2" style="display:none">
 G54 G90 G21 G95
-; Setup tornitura
-M6 T0101 (PLACCHETTA SGROSSATURA)
+; Setup torneado
+M6 T0101 (PLAQUITA DESBASTE)
 G96 S180 M03
 G00 X100 Z5
-; Ciclo di sgrossatura
+; Ciclo desbaste
 G71 U2 R1
 ; <span class="code-comment" onclick="requestExplanation('turning')">
-    <span class="comment-text">Ciclo tornitura</span>
+    <span class="comment-text">Ciclo torneado</span>
     <span class="comment-price" style="display:none;"> - €18</span>
 </span>
 ; <span class="code-comment" onclick="requestExplanation('finishing')">
-    <span class="comment-text">Finitura superficie</span>
+    <span class="comment-text">Acabado superficie</span>
     <span class="comment-price" style="display:none;"> - €22</span>
 </span>
 G00 X200 Z200
@@ -140,52 +140,52 @@ M30
                 </div>
 
                 <div class="project-actions">
-                    <button class="download-btn">📥 Scarica Files</button>
-                    <span class="consultation-price" style="display:none;">Consulenza: €45/ora</span>
+                    <button class="download-btn">📥 Descargar Archivos</button>
+                    <span class="consultation-price" style="display:none;">Consultoría: €45/hora</span>
                     <span class="login-required" style="display:block;">
-                        <button onclick="openLogin()" class="price-login-btn">🔒 Accedi per prezzi</button>
+                        <button onclick="openLogin()" class="price-login-btn">🔒 Acceder para precios</button>
                     </span>
                 </div>
             </div>
 
-            <!-- Progetto 3 - Template -->
+            <!-- Proyecto 3 - Template -->
             <div class="project-card">
                 <div class="project-header">
-                    <h3>Lavorazione 5 Assi Titanio</h3>
+                    <h3>Mecanizado 5 Ejes Titanio</h3>
                     <span class="project-status">Premium</span>
                 </div>
                 
                 <div class="project-media">
                     <div class="media-upload-area" onclick="uploadMedia(3)">
-                        <span>📹 Carica Video/Immagine</span>
+                        <span>📹 Subir Video/Imagen</span>
                         <input type="file" id="media-3" accept="video/*,image/*" style="display:none">
                     </div>
                 </div>
 
                 <div class="project-description">
-                    <p>Componente aerospaziale in titanio Ti-6Al-4V. Lavorazione simultanea 5 assi con strategia avanzata.</p>
+                    <p>Componente aeroespacial en titanio Ti-6Al-4V. Mecanizado simultáneo 5 ejes con estrategia avanzada.</p>
                 </div>
 
                 <div class="cnc-code-section">
-                    <h4>Codice CNC <span class="toggle-code" onclick="toggleCode(3)">👁️</span></h4>
+                    <h4>Código CNC <span class="toggle-code" onclick="toggleCode(3)">👁️</span></h4>
                     <pre class="cnc-code" id="code-3" style="display:none">
 G54 G90 G21 G17 G94 G49
-; Preparazione 5 assi
-M6 T01 (FRESA SFERICA D6)
+; Preparación 5 ejes
+M6 T01 (FRESA ESFÉRICA D6)
 G43 H01 M03 S8000
 G00 X0 Y0 Z50 A0 C0
-; Lavorazione simultanea
+; Mecanizado simultáneo
 G01 Z-10 F200
 ; <span class="code-comment" onclick="requestExplanation('5axis')">
-    <span class="comment-text">Programmazione 5 assi</span>
+    <span class="comment-text">Programación 5 ejes</span>
     <span class="comment-price" style="display:none;"> - €35</span>
 </span>
 ; <span class="code-comment" onclick="requestExplanation('titanium')">
-    <span class="comment-text">Parametri titanio</span>
+    <span class="comment-text">Parámetros titanio</span>
     <span class="comment-price" style="display:none;"> - €25</span>
 </span>
 ; <span class="code-comment" onclick="requestExplanation('collision')">
-    <span class="comment-text">Controllo collisioni</span>
+    <span class="comment-text">Control colisiones</span>
     <span class="comment-price" style="display:none;"> - €30</span>
 </span>
 G00 Z100 A0 C0
@@ -194,10 +194,10 @@ M30
                 </div>
 
                 <div class="project-actions">
-                    <button class="download-btn">📥 Scarica Files</button>
-                    <span class="consultation-price" style="display:none;">Consulenza: €65/ora</span>
+                    <button class="download-btn">📥 Descargar Archivos</button>
+                    <span class="consultation-price" style="display:none;">Consultoría: €65/hora</span>
                     <span class="login-required" style="display:block;">
-                        <button onclick="openLogin()" class="price-login-btn">🔒 Accedi per prezzi</button>
+                        <button onclick="openLogin()" class="price-login-btn">🔒 Acceder para precios</button>
                     </span>
                 </div>
             </div>
@@ -207,15 +207,15 @@ M30
     <footer>
         <div class="footer-content">
             <div class="footer-info">
-                <h3>OTERO - Specialista Fusion 360</h3>
+                <h3>OTERO - Especialista Fusion 360</h3>
                 <p>📧 Email: otero@prosimulator.com</p>
-                <p>📞 Telefono: 1202020</p>
+                <p>📞 Teléfono: 1202020</p>
             </div>
             <div class="footer-social">
                 <a href="#" title="YouTube">📺</a>
                 <a href="#" title="LinkedIn">💼</a>
             </div>
-            <p>&copy; 2024 PROSIMULATOR - Tutti i diritti riservati</p>
+            <p>&copy; 2024 PROSIMULATOR - Todos los derechos reservados</p>
         </div>
     </footer>
 
