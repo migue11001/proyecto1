@@ -1,0 +1,16 @@
+{
+  "name": "sitio-cam-cnc",
+  "version": "1.0.0",
+  "description": "Sitio web profesional de mecanizado CNC y programación CAM",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

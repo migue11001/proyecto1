@@ -56,54 +56,82 @@ h2, h3 {
     color: #444;
 }
 
-/* Secciones de video */
-.video-section {
+/* Secciones de texto */
+.text-section {
     background-color: white;
     padding: 2rem;
     margin-bottom: 2rem;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    text-align: center;
+    text-align: left;
 }
 
-.video-section video {
-    margin-bottom: 1rem;
-    border-radius: 5px;
-    max-width: 100%;
-    height: auto;
-}
-
-.video-section p {
+.text-section p {
     color: #666;
     font-size: 1.1rem;
+    margin-bottom: 1rem;
+    line-height: 1.8;
 }
 
-/* Grid de videos */
-.video-grid {
+/* Grid de texto/cards */
+.text-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     margin-top: 2rem;
 }
 
-.video-item {
+.text-item {
     background-color: white;
     padding: 1.5rem;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    text-align: center;
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.video-item video {
-    margin-bottom: 1rem;
-    border-radius: 5px;
-    max-width: 100%;
-    height: auto;
+.text-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
 
-.video-item p {
+.text-item p {
     color: #666;
     margin-top: 0.5rem;
+    line-height: 1.6;
+}
+
+/* Cards específicas para CAM */
+.cam-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.cam-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cam-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.cam-card h3 {
+    color: white;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.cam-card p {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
 }
 
 /* Footer */
@@ -117,14 +145,16 @@ footer {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .video-grid {
+    .text-grid,
+    .cam-cards {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
     
-    .video-section video,
-    .video-item video {
-        width: 100%;
-        max-width: 400px;
+    .text-section,
+    .text-item,
+    .cam-card {
+        padding: 1.5rem;
     }
     
     nav ul {
@@ -134,5 +164,35 @@ footer {
     
     main {
         padding: 0 0.5rem;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    h2 {
+        font-size: 1.4rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .text-section,
+    .text-item,
+    .cam-card {
+        padding: 1rem;
+    }
+    
+    main {
+        margin: 1rem auto;
+    }
+    
+    nav a {
+        padding: 0.8rem 1rem;
+        display: block;
+        text-align: center;
     }
 }
