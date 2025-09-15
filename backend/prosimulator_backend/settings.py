@@ -16,9 +16,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-r*k)%jjs3*peo_w048w()d&!h=&xga*(#2y4+%7e$mpxe^a=_b')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.railway.app']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    '.railway.app',
+    config('RAILWAY_PUBLIC_DOMAIN', default=''),
+    config('ALLOWED_HOST', default=''),
+]
+
+# Filtrar hosts vacíos
+ALLOWED_HOSTS = [host for host in ALLOWED_HOSTS if host]
 
 
 # Application definition
@@ -170,9 +179,20 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://prosimulator.railway.app",
+    config('FRONTEND_URL', default=''),
 ]
 
+# Filtrar URLs vacías
+CORS_ALLOWED_ORIGINS = [url for url in CORS_ALLOWED_ORIGINS if url]
+
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
+
+# Configuración adicional para Railway
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Media files
 MEDIA_URL = '/media/'

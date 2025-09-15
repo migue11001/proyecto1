@@ -15,11 +15,15 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'prosimulator_backend.settings')
 django.setup()
 
 def setup_production():
-    print("🚀 Configurando producción...")
+    print("🚀 Configurando producción en Railway...")
     
-    # 1. Crear superuser para OTERO (usar variables de entorno)
+    # 1. Verificar que las migraciones estén aplicadas
+    from django.core.management import execute_from_command_line
+    print("📦 Verificando migraciones...")
+    
+    # 2. Crear superuser para OTERO (usar variables de entorno)
     admin_email = os.environ.get('ADMIN_EMAIL', 'otero@prosimulator.com')
-    admin_password = os.environ.get('ADMIN_PASSWORD')  # Debe configurarse en Railway
+    admin_password = os.environ.get('ADMIN_PASSWORD')
     
     if admin_password:
         admin_user, created = User.objects.get_or_create(
@@ -34,15 +38,19 @@ def setup_production():
             admin_user.set_password(admin_password)
             admin_user.save()
             print("✅ Usuario admin creado")
+        else:
+            print("ℹ️ Usuario admin ya existe")
     else:
-        print("⚠️ ADMIN_PASSWORD no configurado")
+        print("⚠️ ADMIN_PASSWORD no configurado en Railway")
     
-    # 2. Crear proyectos si no existen
+    # 3. Crear proyectos si no existen
     if CNCProject.objects.count() == 0:
         create_sample_projects()
         print("✅ Proyectos de ejemplo creados")
+    else:
+        print("ℹ️ Proyectos ya existen")
     
-    # No demo users for privacy
+    print("✅ Configuración de producción completada")
 
 def create_sample_projects():
     # Proyectos seguros sin datos sensibles
