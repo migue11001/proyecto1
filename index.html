@@ -1,67 +1,143 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light">
-    <meta name="theme-color" content="#14213D">
-    <title>Servizi CNC Professionali - Programmazione Fusion 360</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Aplicaciones Educativas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .app-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .app-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .app-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+        
+        .app-description {
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+        
+        .app-link {
+            display: inline-block;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul class="nav-left">
-                <li><a href="index.html" class="logo">PROSIMULATOR</a></li>
-            </ul>
-            <ul class="nav-right">
-                <li class="language-selector">
-                    <a href="index.html" class="active">🇮🇹 IT</a>
-                    <a href="en.html">🇬🇧 EN</a>
-                    <a href="es.html">🇪🇸 ES</a>
-                </li>
-                <li class="social-links">
-                    <a href="#" title="YouTube">📺</a>
-                    <a href="#" title="LinkedIn">💼</a>
-                </li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-        <h1 class="main-title">Specialista Fusion 360 & Programmazione CNC</h1>
-        
-        <div class="navigation-buttons">
-            <a href="index.html" class="nav-button active">INICIO</a>
-            <a href="videos.html" class="nav-button">PORTFOGLIO</a>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Aplicaciones Educativas</h1>
+            <p>Herramientas interactivas para el aprendizaje de idiomas</p>
         </div>
         
-        <section class="text-section">
-            <h2>Servizi CNC Professionali</h2>
-            <p>Offro servizi di programmazione CAM avanzata con Fusion 360, specializzato in lavorazioni CNC di precisione. Esperienza pluriennale nella progettazione e realizzazione di componenti complessi.</p>
-            <p>La mia competenza include fresatura 2.5D, 3D, tornitura e lavorazioni multi-asse, garantendo risultati ottimali per ogni progetto industriale.</p>
-        </section>
-
-        <section class="text-section">
-            <h2>Consulenza Tecnica Specializzata</h2>
-            <p>Fornisco consulenza personalizzata per ottimizzazione di processi produttivi, dalla progettazione CAD alla programmazione CAM finale. Supporto completo per aziende e professionisti.</p>
-            <p>I miei servizi includono analisi di fattibilità, sviluppo strategie di lavorazione, post-processori personalizzati e formazione tecnica specializzata.</p>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3>OTERO - Specialista Fusion 360</h3>
-                <p>📧 Email: otero@prosimulator.com</p>
-                <p>📞 Telefono: 1202020</p>
+        <div class="apps-grid">
+            <div class="app-card">
+                <div class="app-icon">🎯</div>
+                <div class="app-title">Le Mie Parole</div>
+                <div class="app-description">
+                    Entrenador de pronunciación para palabras en inglés. 
+                    Crea tu lista personalizada y practica la pronuncia con síntesis de voz.
+                </div>
+                <a href="PRONUNCIA.html" class="app-link">Comenzar Práctica</a>
             </div>
-            <div class="footer-social">
-                <a href="#" title="YouTube">📺</a>
-                <a href="#" title="LinkedIn">💼</a>
+            
+            <div class="app-card">
+                <div class="app-icon">📚</div>
+                <div class="app-title">Práctica Gramatical</div>
+                <div class="app-description">
+                    Sistema interactivo para practicar estructuras gramaticales.
+                    Crea ejercicios de ordenamiento de palabras.
+                </div>
+                <a href="gramatica.html" class="app-link">Empezar Ejercicios</a>
             </div>
-            <p>&copy; 2024 PROSIMULATOR - Tutti i diritti riservati</p>
         </div>
-    </footer>
+    </div>
 </body>
 </html>

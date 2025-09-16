@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Le Mie Parole - Pronunciation Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .add-word-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .add-word-form {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .input-field {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            min-width: 200px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-field:focus {
+            outline: none;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .words-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .word-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .word-card:hover {
+            transform: translateY(-5px);
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .word-card.oldest-card {
+            border: 2px solid #FF8E53;
+            background: rgba(255, 142, 83, 0.1);
+        }
+        
+        .word-card.oldest-card:hover {
+            border-color: #FF6B6B;
+            background: rgba(255, 107, 107, 0.1);
+        }
+        
+        .word-title {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        
+        .word-pronunciation {
+            font-size: 1.3em;
+            color: #E0E0E0;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        .word-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+        
+        .empty-state h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .notification.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
+        .notification.error {
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .counter {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #FFD700;
+        }
+        
+        .counter.warning {
+            color: #FF8E53;
+            font-weight: bold;
+        }
+        
+        .counter.limit {
+            color: #FF416C;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .add-word-form { flex-direction: column; }
+            .input-field { min-width: 250px; }
+            .words-grid { grid-template-columns: 1fr; }
+            .word-controls { flex-direction: column; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Le Mie Parole</h1>
+            <p>Crea la tua lista personale di parole inglesi e pratica la pronuncia!</p>
+        </div>
+        
+        <div class="add-word-section">
+            <h2 style="text-align: center; margin-bottom: 20px;">🆕 Aggiungi una nuova parola</h2>
+            <div class="add-word-form">
+                <input type="text" id="word-input" class="input-field" placeholder="Parola inglese (es: beautiful)" maxlength="50">
+                <input type="text" id="pronunciation-input" class="input-field" placeholder="Pronuncia (es: byoo-ti-ful)" maxlength="100">
+                <button class="btn btn-success" onclick="addWord()">➕ Aggiungi</button>
+            </div>
+            <p style="text-align: center; color: #E0E0E0; font-size: 0.9em; margin-top: 10px;">
+                💡 Se non inserisci la pronuncia, il sistema ne genererà una automaticamente!
+            </p>
+        </div>
+        
+        <div class="counter" id="word-counter">
+            📚 0 parole nella tua lista
+        </div>
+        
+        <div class="words-grid" id="words-grid">
+            <div class="empty-state">
+                <h3>📝 Lista vuota</h3>
+                <p>Aggiungi la tua prima parola usando il modulo qui sopra!</p>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #B0B0B0;">
+                    Esempi: restaurant, communication, entrepreneur, psychology...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MyWordsTrainer {
+            constructor() {
+                this.words = this.loadWords();
+                this.maxWords = 20; // Limite massimo di parole
+                this.renderWords();
+                this.setupEventListeners();
+                this.initSpeech();
+            }
+            
+            initSpeech() {
+                // Assicurati che le voci siano caricate
+                if ('speechSynthesis' in window) {
+                    // Forza il caricamento delle voci
+                    speechSynthesis.getVoices();
+                    
+                    speechSynthesis.onvoiceschanged = () => {
+                        console.log('Voci caricate:', speechSynthesis.getVoices().length);
+                    };
+                    
+                    // Test iniziale
+                    setTimeout(() => {
+                        const voices = speechSynthesis.getVoices();
+                        console.log('Voci disponibili:', voices.map(v => v.name + ' - ' + v.lang));
+                    }, 1000);
+                } else {
+                    this.showNotification('⚠️ Sintesi vocale non supportata da questo browser', 'error');
+                }
+            }
+            
+            setupEventListeners() {
+                // Enter per aggiungere parole
+                document.getElementById('word-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        addWord();
+                    }
+                });
+                
+                document.getElementById('pronunciation-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        addWord();
+                    }
+                });
+            }
+            
+            addWord(word, pronunciation) {
+                if (!word) {
+                    word = document.getElementById('word-input').value.trim();
+                    pronunciation = document.getElementById('pronunciation-input').value.trim();
+                }
+                
+                if (!word) {
+                    this.showNotification('⚠️ Inserisci una parola!', 'error');
+                    return;
+                }
+                
+                const wordLower = word.toLowerCase();
+                const currentWordsCount = Object.keys(this.words).length;
+                
+                // Se la parola esiste già, aggiornala
+                if (this.words[wordLower]) {
+                    this.words[wordLower] = {
+                        word: word,
+                        pronunciation: pronunciation || this.generatePronunciation(word),
+                        added: new Date().toISOString()
+                    };
+                    this.showNotification(`🔄 "${word}" aggiornata!`, 'success');
+                } else {
+                    // Se abbiamo raggiunto il limite, rimuovi la parola più vecchia
+                    if (currentWordsCount >= this.maxWords) {
+                        const oldestWordKey = this.getOldestWordKey();
+                        const oldestWord = this.words[oldestWordKey];
+                        delete this.words[oldestWordKey];
+                        this.showNotification(`🔄 Sostituito "${oldestWord.word}" con "${word}"`, 'success');
+                    }
+                    
+                    // Genera pronuncia automatica se non fornita
+                    if (!pronunciation) {
+                        pronunciation = this.generatePronunciation(word);
+                    }
+                    
+                    // Aggiungi la nuova parola
+                    this.words[wordLower] = {
+                        word: word,
+                        pronunciation: pronunciation,
+                        added: new Date().toISOString()
+                    };
+                    
+                    if (currentWordsCount < this.maxWords) {
+                        this.showNotification(`✅ "${word}" aggiunta con successo!`, 'success');
+                    }
+                }
+                
+                this.saveWords();
+                this.renderWords();
+                
+                // Pulisci i campi
+                document.getElementById('word-input').value = '';
+                document.getElementById('pronunciation-input').value = '';
+            }
+            
+            getOldestWordKey() {
+                const wordsArray = Object.entries(this.words);
+                if (wordsArray.length === 0) return null;
+                
+                // Trova la parola con la data più vecchia
+                wordsArray.sort((a, b) => new Date(a[1].added) - new Date(b[1].added));
+                return wordsArray[0][0];
+            }
+            
+            removeWord(wordKey) {
+                const word = this.words[wordKey];
+                if (!word) {
+                    this.showNotification('❌ Parola non trovata!', 'error');
+                    return;
+                }
+                
+                if (confirm(`🗑️ Sei sicuro di voler rimuovere "${word.word}"?`)) {
+                    try {
+                        delete this.words[wordKey];
+                        this.saveWords();
+                        this.renderWords();
+                        this.showNotification(`🗑️ "${word.word}" rimossa con successo!`, 'success');
+                        console.log('Parola rimossa:', word.word);
+                    } catch (error) {
+                        console.error('Errore nella rimozione:', error);
+                        this.showNotification('❌ Errore nella rimozione della parola', 'error');
+                    }
+                }
+            }
+            
+            speakWord(wordKey) {
+                if (!('speechSynthesis' in window)) {
+                    this.showNotification('❌ Sintesi vocale non supportata', 'error');
+                    return;
+                }
+                
+                const wordData = this.words[wordKey];
+                if (!wordData) return;
+                
+                // Cancella eventuali speech in corso
+                speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(wordData.word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.7;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+                
+                // Cerca una voce inglese
+                const voices = speechSynthesis.getVoices();
+                const englishVoices = voices.filter(voice => 
+                    voice.lang.startsWith('en-US') || voice.lang.startsWith('en-GB') || voice.lang.startsWith('en')
+                );
+                
+                if (englishVoices.length > 0) {
+                    utterance.voice = englishVoices[0];
+                    console.log('Usando voce:', englishVoices[0].name);
+                } else {
+                    console.log('Nessuna voce inglese trovata, uso voce di default');
+                }
+                
+                utterance.onstart = () => {
+                    console.log('Iniziando a parlare:', wordData.word);
+                };
+                
+                utterance.onend = () => {
+                    console.log('Finito di parlare:', wordData.word);
+                };
+                
+                utterance.onerror = (e) => {
+                    console.error('Errore speech synthesis:', e);
+                    this.showNotification('❌ Errore nella riproduzione audio', 'error');
+                };
+                
+                try {
+                    speechSynthesis.speak(utterance);
+                    this.showNotification(`🔊 Pronunciando "${wordData.word}"...`, 'success');
+                } catch (error) {
+                    console.error('Errore nel speech synthesis:', error);
+                    this.showNotification('❌ Errore nella riproduzione audio', 'error');
+                }
+            }
+            
+            generatePronunciation(word) {
+                // Regole di pronuncia inglese semplificate
+                const rules = [
+                    ['tion', 'shun'],
+                    ['sion', 'zhun'],
+                    ['ough', 'uf'],
+                    ['augh', 'af'],
+                    ['eigh', 'ay'],
+                    ['ight', 'ayt'],
+                    ['ought', 'awt'],
+                    ['ph', 'f'],
+                    ['gh', 'f'],
+                    ['th', 'th'],
+                    ['ch', 'ch'],
+                    ['sh', 'sh'],
+                    ['ck', 'k'],
+                    ['que$', 'k'],
+                    ['x', 'ks'],
+                    ['c([eiy])', 's$1'],
+                    ['g([eiy])', 'j$1'],
+                    ['e$', '']
+                ];
+                
+                let pronunciation = word.toLowerCase();
+                
+                rules.forEach(([pattern, replacement]) => {
+                    const regex = new RegExp(pattern, 'g');
+                    pronunciation = pronunciation.replace(regex, replacement);
+                });
+                
+                // Aggiungi separatori di sillaba
+                pronunciation = pronunciation.replace(/([aeiou])([bcdfghjklmnpqrstvwxyz]{2,})/g, '$1-$2');
+                
+                return pronunciation || word;
+            }
+            
+            renderWords() {
+                const grid = document.getElementById('words-grid');
+                const wordsArray = Object.entries(this.words);
+                const currentCount = wordsArray.length;
+                
+                // Aggiorna contatore con indicatori visivi
+                const counter = document.getElementById('word-counter');
+                let counterClass = '';
+                let counterText = '';
+                
+                if (currentCount >= this.maxWords) {
+                    counterClass = 'limit';
+                    counterText = `🔴 ${currentCount}/${this.maxWords} parole (LIMITE RAGGIUNTO - le nuove sostituiranno le vecchie)`;
+                } else if (currentCount >= this.maxWords * 0.8) {
+                    counterClass = 'warning';
+                    counterText = `🟡 ${currentCount}/${this.maxWords} parole (quasi al limite!)`;
+                } else {
+                    counterClass = '';
+                    counterText = `📚 ${currentCount}/${this.maxWords} parole nella tua lista`;
+                }
+                
+                counter.className = `counter ${counterClass}`;
+                counter.textContent = counterText;
+                
+                if (wordsArray.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <h3>📝 Lista vuota</h3>
+                            <p>Aggiungi la tua prima parola usando il modulo qui sopra!</p>
+                            <p style="margin-top: 15px; font-size: 0.9em; color: #B0B0B0;">
+                                Puoi aggiungere fino a ${this.maxWords} parole. Quando raggiungi il limite, le nuove parole sostituiranno automaticamente quelle più vecchie.
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Ordina per data di aggiunta (più recenti prima)
+                wordsArray.sort((a, b) => new Date(b[1].added) - new Date(a[1].added));
+                
+                grid.innerHTML = wordsArray.map(([key, data], index) => {
+                    const isOldest = index === wordsArray.length - 1 && currentCount >= this.maxWords;
+                    const cardClass = isOldest ? 'word-card oldest-card' : 'word-card';
+                    const ageIndicator = isOldest ? '<div style="color: #FF8E53; font-size: 0.8em; margin-bottom: 5px;">⚠️ Prossima da sostituire</div>' : '';
+                    
+                    return `
+                        <div class="${cardClass}">
+                            ${ageIndicator}
+                            <div class="word-title">${data.word}</div>
+                            <div class="word-pronunciation">🔤 ${data.pronunciation}</div>
+                            <div class="word-controls">
+                                <button class="btn btn-primary" onclick="myWords.speakWord('${key}')">
+                                    🔊 Ascolta
+                                </button>
+                                <div style="font-size: 0.8em; color: #B0B0B0; margin-top: 5px;">
+                                    Aggiunta: ${new Date(data.added).toLocaleDateString('it-IT')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2500);
+            }
+            
+            saveWords() {
+                try {
+                    // Salva in memoria JS (non localStorage per rispettare le limitazioni)
+                    window.myWordsData = this.words;
+                } catch (error) {
+                    console.error('Errore nel salvataggio:', error);
+                }
+            }
+            
+            loadWords() {
+                try {
+                    // Carica dalla memoria JS
+                    return window.myWordsData || {};
+                } catch (error) {
+                    console.error('Errore nel caricamento:', error);
+                    return {};
+                }
+            }
+        }
+        
+        // Inizializza l'app
+        const myWords = new MyWordsTrainer();
+        
+        // Funzione globale per i pulsanti
+        function addWord() {
+            myWords.addWord();
+        }
+        
+        // Aggiungi alcune parole di esempio per iniziare (ma rispettando il limite)
+        setTimeout(() => {
+            if (Object.keys(myWords.words).length === 0) {
+                myWords.addWord('beautiful', 'byoo-ti-ful');
+                myWords.addWord('restaurant', 'res-tuh-rant');
+                myWords.addWord('communication', 'kuh-myoo-ni-kay-shun');
+                
+                // Aggiungi messaggio informativo
+                setTimeout(() => {
+                    myWords.showNotification(`ℹ️ 3 parole di esempio aggiunte. Limite: ${myWords.maxWords} parole totali.`, 'success');
+                }, 1000);
+            }
+        }, 500);
+    </script>
+</body>
+</html>

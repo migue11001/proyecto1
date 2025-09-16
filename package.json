@@ -1,16 +1,13 @@
 {
-  "name": "sitio-cam-cnc",
+  "name": "educational-web-apps",
   "version": "1.0.0",
-  "description": "Sitio web profesional de mecanizado CNC y programación CAM",
-  "main": "server.js",
+  "description": "Educational web applications - Pronunciation trainer and Grammar practice system",
+  "main": "index.html",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "python -m http.server 8080",
+    "dev": "python -m http.server 3000"
   },
-  "dependencies": {
-    "express": "^4.18.2"
-  },
-  "engines": {
-    "node": ">=14.0.0"
-  }
+  "keywords": ["education", "language", "pronunciation", "grammar"],
+  "author": "Miguel Otero",
+  "license": "MIT"
 }

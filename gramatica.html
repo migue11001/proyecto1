@@ -1,0 +1,401 @@
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Práctica Gramatical</title>
+    <!-- Tailwind CSS para estilos rápidos y modernos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React y ReactDOM para la funcionalidad de la aplicación -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel para compilar JSX directamente en el navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Estilos y animaciones personalizadas */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        /* Definición de animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            80% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulseOnce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Clases para usar las animaciones */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .animate-pop-in {
+            animation: popIn 0.3s ease-out forwards;
+        }
+        .animate-pulse-once {
+            animation: pulseOnce 0.6s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- CONSTANTES (FUERA DEL COMPONENTE) ---
+        const grammarCodes = {
+            1: "Verbo (Base)", 2: "Verbo (3ª Pers.)", 3: "Verbo (Pasado)", 4: "Gerundio", 5: "Participio", 6: "Modal", 10: "Nombre (Sing.)", 11: "Nombre (Pl.)", 12: "N. Propio", 20: "Pronombre Suj.", 21: "Pronombre Obj.", 24: "P. Interrogativo", 25: "P. Indefinido", 30: "Artículo Def.", 31: "Artículo Indef.", 32: "Demostrativo", 33: "Posesivo", 34: "Cuantificador", 40: "Adjetivo", 41: "Adj. Comparativo", 42: "Adj. Superlativo", 50: "Adverbio", 53: "Adv. Interrogativo", 60: "Preposición", 61: "Conjunción Coord.", 62: "Conjunción Sub.", 64: "Interjección", 65: "Posesivo ('s)", 66: "Existencial (There)", 67: "Sugerencia (Let's)", 68: "Infinitivo (to)"
+        };
+
+        const lexicon = {
+            "i": { type: 20 }, "you": { type: 20 }, "he": { type: 20 }, "she": { type: 20 }, "it": { type: 20 }, "we": { type: 20 }, "they": { type: 20 }, "me": { type: 21 }, "him": { type: 21 }, "her": { type: 21 }, "us": { type: 21 }, "them": { type: 21 }, "my": { type: 33 }, "your": { type: 33 }, "his": { type: 33 }, "their": { type: 33 }, "a": { type: 31 }, "an": { type: 31 }, "the": { type: 30 }, "this": { type: 32 }, "that": { type: 32 }, "these": { type: 32 }, "those": { type: 32 }, "book": { type: 10 }, "dog": { type: 10 }, "car": { type: 10 }, "house": { type: 10 }, "teacher": { type: 10 }, "student": { type: 10 }, "books": { type: 11 }, "dogs": { type: 11 }, "cars": { type: 11 }, "houses": { type: 11 }, "teachers": { type: 11 }, "students": { type: 11 }, "john": { type: 12 }, "london": { type: 12 }, "mary": { type: 12 }, "read": { type: 1 }, "go": { type: 1 }, "play": { type: 1 }, "study": { type: 1 }, "reads": { type: 2 }, "goes": { type: 2 }, "plays": { type: 2 }, "studies": { type: 2 }, "reading": { type: 4 }, "going": { type: 4 }, "playing": { type: 4 }, "studying": { type: 4 }, "went": { type: 3 }, "played": { type: 3 }, "studied": { type: 3 }, "can": { type: 6 }, "will": { type: 6 }, "would": { type: 6 }, "could": { type: 6 }, "should": { type: 6 }, "may": { type: 6 }, "must": { type: 6 }, "big": { type: 40 }, "small": { type: 40 }, "happy": { type: 40 }, "sad": { type: 40 }, "new": { type: 40 }, "old": { type: 40 }, "in": { type: 60 }, "on": { type: 60 }, "at": { type: 60 }, "to": { type: 68 }, "from": { type: 60 }, "with": { type: 60 }, "for": { type: 60 }, "and": { type: 61 }, "but": { type: 61 }, "or": { type: 61 }, "so": { type: 61 }, "because": { type: 62 }, "when": { type: 62 }, "if": { type: 62 }, "although": { type: 62 }, "while": { type: 62 }, "where": { type: 53 }, "why": { type: 53 }, "how": { type: 53 }, "quickly": { type: 50 }, "slowly": { type: 50 }, "well": { type: 50 }, "badly": { type: 50 }, "very": { type: 50 }, "really": { type: 50 }, "always": { type: 50 }, "never": { type: 50 }, "some": { type: 34 }, "any": { type: 34 }, "many": { type: 34 }, "much": { type: 34 }, "few": { type: 34 }, "little": { type: 34 }, "there": { type: 66 }, "let's": { type: 67 }, "wow": { type: 64 }, "oh": { type: 64 }, "hey": { type: 64 }, "'s": { type: 65 }
+        };
+
+        // --- COMPONENTES HIJOS (UI) ---
+        const InputScreen = ({ grammarTitle, examplesText, customGrammarPattern, onInputChange, processExamples }) => (
+          <div className="bg-white p-6 rounded-lg shadow-md animate-fade-in">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Crear un nuevo ejercicio</h2>
+            <div className="space-y-4">
+                <div>
+                    <label htmlFor="grammarTitle" className="block text-gray-700 font-semibold mb-2">Título de la estructura gramatical:</label>
+                    <input id="grammarTitle" name="grammarTitle" type="text" value={grammarTitle} onChange={onInputChange} className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ej: Presente Simple con adverbios"/>
+                </div>
+                <div>
+                    <label htmlFor="examplesText" className="block text-gray-700 font-semibold mb-2">Ejemplos (uno por línea):</label>
+                    <textarea id="examplesText" name="examplesText" value={examplesText} onChange={onInputChange} className="w-full border border-gray-300 rounded-md p-2 h-40 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ej:&#10;She always drinks coffee.&#10;I never eat meat.&#10;They sometimes play tennis."/>
+                </div>
+                <div>
+                    <label htmlFor="customGrammarPattern" className="block text-gray-700 font-semibold mb-2">Patrón gramatical personalizado (opcional):</label>
+                    <input id="customGrammarPattern" name="customGrammarPattern" type="text" value={customGrammarPattern} onChange={onInputChange} className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ej: [20, 50, 2, 10]"/>
+                    <p className="text-sm text-gray-500 mt-1">Formato: Array JSON de códigos. Si se deja vacío, se usará el del primer ejemplo.</p>
+                </div>
+            </div>
+            <div className="flex justify-end mt-6">
+                <button onClick={processExamples} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-150">
+                    Comenzar Práctica
+                </button>
+            </div>
+          </div>
+        );
+
+        const PracticeScreen = ({ practiceData, handlers }) => {
+            const { grammarTitle, currentExampleIndex, examplesLength, grammarPattern, userAnswer, availableWords, feedback, slotStatus } = practiceData;
+            const { handleDragStart, handleDragOver, handleDrop, removeFromSlot, resetCurrentExercise, backToInput, checkAnswer, nextExample } = handlers;
+            
+            const getSlotClass = (index) => {
+                switch(slotStatus[index]) {
+                    case 'correct': return 'bg-green-100 border-green-400';
+                    case 'incorrect': return 'bg-red-100 border-red-400';
+                    default: return 'bg-blue-50 border-blue-300';
+                }
+            };
+
+            return (
+                <div className="bg-white p-6 rounded-lg shadow-md space-y-6 animate-fade-in">
+                    <div className="flex justify-between items-center border-b pb-4">
+                        <h2 className="text-xl font-bold text-gray-800">{grammarTitle}</h2>
+                        <div className="text-gray-600 font-semibold">Ejemplo {currentExampleIndex + 1} de {examplesLength}</div>
+                    </div>
+                    
+                    <div>
+                        <h3 className="font-semibold mb-2 text-gray-700">Estructura gramatical:</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {grammarPattern.map((code, index) => (
+                                <span key={index} className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-1 rounded-full">
+                                    {grammarCodes[code] || `Código ${code}`}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    <h3 className="font-semibold text-gray-700">Ordena las palabras para formar la oración correcta:</h3>
+                    
+                    <div className="flex flex-wrap gap-3 min-h-[60px] p-2 bg-gray-50 rounded-lg border">
+                        {userAnswer.map((word, index) => (
+                            <div
+                                key={index}
+                                className={`border-2 border-dashed rounded-md p-2 min-w-[90px] h-14 flex items-center justify-center transition-colors duration-300 ${getSlotClass(index)}`}
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDrop={(e) => handleDrop(e, index)}
+                            >
+                                {word && (
+                                    <div className="bg-blue-500 text-white px-3 py-1 rounded-md flex items-center shadow-md animate-pop-in">
+                                        <span>{word.text}</span>
+                                        <button onClick={() => removeFromSlot(index)} className="ml-2 text-blue-100 hover:text-white font-bold text-lg">×</button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 min-h-[50px] p-3 bg-gray-100 rounded-lg">
+                        {availableWords.map((word, index) => (
+                            <div
+                                key={`${word.text}-${index}`}
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg cursor-move shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all"
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, word, index)}
+                            >
+                                {word.text}
+                            </div>
+                        ))}
+                    </div>
+
+                    {feedback && (
+                        <div className={`p-4 rounded-md text-center font-semibold animate-fade-in ${feedback.correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {feedback.message}
+                        </div>
+                    )}
+
+                    <div className="flex justify-between items-center pt-4 border-t">
+                        <div>
+                            <button onClick={resetCurrentExercise} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2 transition-colors">Reiniciar</button>
+                            <button onClick={backToInput} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Volver</button>
+                        </div>
+                        <div>
+                            {feedback && feedback.correct ? (
+                                <button onClick={nextExample} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-md animate-pulse-once">Siguiente →</button>
+                            ) : (
+                                <button onClick={checkAnswer} disabled={feedback !== null} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">Verificar</button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ResultsScreen = ({ resultsData, handlers }) => {
+            const { grammarTitle, correctAnswers, examples } = resultsData;
+            const { resetEverything, startPractice } = handlers;
+            const total = examples.length;
+            const percentage = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
+            
+            return (
+                <div className="bg-white p-6 rounded-lg shadow-md text-center animate-fade-in">
+                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Resultados de la Práctica</h2>
+                    <div className="p-6 bg-blue-50 rounded-lg mb-6">
+                        <p className="text-xl mb-2 text-gray-700">Completaste el ejercicio de <span className="font-bold text-blue-600">{grammarTitle}</span></p>
+                        <p className="text-5xl font-bold text-blue-600 my-4">{percentage}%</p>
+                        <p className="text-gray-600">({correctAnswers} de {total} correctos)</p>
+                    </div>
+                    <div className="flex justify-center gap-4">
+                        <button onClick={resetEverything} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Volver al Inicio</button>
+                        <button onClick={() => startPractice(examples)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Practicar de Nuevo</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- COMPONENTE PRINCIPAL (Contiene toda la lógica) ---
+        const App = () => {
+            // Corrección: Usar React.useState en lugar de useState
+            const [appState, setAppState] = React.useState('input'); // 'input', 'practice', 'results'
+            const [formState, setFormState] = React.useState({
+                grammarTitle: '',
+                examplesText: '',
+                customGrammarPattern: ''
+            });
+            const [examples, setExamples] = React.useState([]);
+            const [grammarPattern, setGrammarPattern] = React.useState([]);
+            
+            const [currentExampleIndex, setCurrentExampleIndex] = React.useState(0);
+            const [availableWords, setAvailableWords] = React.useState([]);
+            const [userAnswer, setUserAnswer] = React.useState([]);
+            const [slotStatus, setSlotStatus] = React.useState([]);
+            
+            const [feedback, setFeedback] = React.useState(null);
+            const [correctAnswers, setCorrectAnswers] = React.useState(0);
+            
+            const [draggingItem, setDraggingItem] = React.useState(null);
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormState(prev => ({ ...prev, [name]: value }));
+            };
+
+            const processExamples = () => {
+                if (!formState.examplesText.trim()) {
+                    alert('Por favor, ingresa al menos un ejemplo.');
+                    return;
+                }
+                const lines = formState.examplesText.split('\n').map(l => l.trim()).filter(Boolean);
+                
+                const processed = lines.map(line => {
+                    const originalWords = line.split(' ');
+                    const wordObjects = originalWords.map(text => ({
+                        text: text,
+                        normalized: text.toLowerCase().replace(/[.,!?;:'"()]/g, '')
+                    }));
+                    const pattern = wordObjects.map(w => lexicon[w.normalized]?.type || null);
+                    if (pattern.includes(null)) {
+                        console.warn(`La oración "${line}" contiene palabras no encontradas en el léxico.`);
+                    }
+                    return { original: line, words: wordObjects, pattern };
+                });
+
+                setExamples(processed);
+                
+                if (formState.customGrammarPattern.trim()) {
+                    try {
+                        const pattern = JSON.parse(formState.customGrammarPattern);
+                        setGrammarPattern(pattern);
+                    } catch (e) {
+                        alert('El patrón gramatical personalizado no es un JSON válido.');
+                        return;
+                    }
+                } else {
+                    setGrammarPattern(processed[0].pattern);
+                }
+                
+                startPractice(processed);
+            };
+            
+            const startPractice = (examplesToPractice) => {
+                setCorrectAnswers(0);
+                setCurrentExampleIndex(0);
+                prepareExercise(examplesToPractice[0]);
+                setAppState('practice');
+            };
+            
+            const prepareExercise = (example) => {
+                setUserAnswer(Array(example.words.length).fill(null));
+                setSlotStatus(Array(example.words.length).fill('neutral'));
+                setAvailableWords([...example.words].sort(() => Math.random() - 0.5));
+                setFeedback(null);
+            };
+
+            const checkAnswer = () => {
+                if (userAnswer.includes(null)) {
+                    setFeedback({ correct: false, message: "Por favor, completa todos los espacios." });
+                    return;
+                }
+                const currentExample = examples[currentExampleIndex];
+                const isCorrect = userAnswer.every((word, index) => word.text === currentExample.words[index].text);
+                const newSlotStatus = userAnswer.map((word, index) => 
+                    word.text === currentExample.words[index].text ? 'correct' : 'incorrect'
+                );
+                setSlotStatus(newSlotStatus);
+
+                if (isCorrect) {
+                    setCorrectAnswers(prev => prev + 1);
+                    setFeedback({ correct: true, message: "¡Correcto! Excelente trabajo." });
+                } else {
+                    setFeedback({ correct: false, message: "Algunas palabras no están en la posición correcta. Inténtalo de nuevo." });
+                }
+            };
+
+            const nextExample = () => {
+                const nextIndex = currentExampleIndex + 1;
+                if (nextIndex < examples.length) {
+                    setCurrentExampleIndex(nextIndex);
+                    prepareExercise(examples[nextIndex]);
+                } else {
+                    setAppState('results');
+                }
+            };
+
+            const resetCurrentExercise = () => {
+                prepareExercise(examples[currentExampleIndex]);
+            };
+            
+            const resetEverything = () => {
+                setFormState({ grammarTitle: '', examplesText: '', customGrammarPattern: '' });
+                setAppState('input');
+            };
+
+            const handleDragStart = (e, word, fromIndex) => {
+                setDraggingItem({ word, fromIndex });
+                e.dataTransfer.effectAllowed = 'move';
+            };
+            
+            const handleDragOver = (e) => e.preventDefault();
+            
+            const handleDrop = (e, toSlotIndex) => {
+                e.preventDefault();
+                if (!draggingItem || userAnswer[toSlotIndex] !== null || feedback) return;
+
+                const newAnswer = [...userAnswer];
+                newAnswer[toSlotIndex] = draggingItem.word;
+                setUserAnswer(newAnswer);
+
+                const newAvailable = availableWords.filter((_, index) => index !== draggingItem.fromIndex);
+                setAvailableWords(newAvailable);
+                
+                setDraggingItem(null);
+            };
+
+            const removeFromSlot = (slotIndex) => {
+                if (feedback) return;
+                const wordToRemove = userAnswer[slotIndex];
+                if (!wordToRemove) return;
+                setAvailableWords(prev => [...prev, wordToRemove]);
+                const newAnswer = [...userAnswer];
+                newAnswer[slotIndex] = null;
+                setUserAnswer(newAnswer);
+            };
+
+            const renderContent = () => {
+                switch (appState) {
+                    case 'input':
+                        return <InputScreen 
+                            {...formState}
+                            onInputChange={handleInputChange}
+                            processExamples={processExamples}
+                        />;
+                    case 'practice':
+                        const practiceData = {
+                            grammarTitle: formState.grammarTitle,
+                            currentExampleIndex,
+                            examplesLength: examples.length,
+                            grammarPattern,
+                            userAnswer,
+                            availableWords,
+                            feedback,
+                            slotStatus,
+                        };
+                        const handlers = {
+                            handleDragStart, handleDragOver, handleDrop, removeFromSlot, 
+                            resetCurrentExercise, backToInput: () => setAppState('input'),
+                            checkAnswer, nextExample
+                        };
+                        return <PracticeScreen practiceData={practiceData} handlers={handlers} />;
+                    case 'results':
+                        const resultsData = { grammarTitle: formState.grammarTitle, correctAnswers, examples };
+                        const resultHandlers = { resetEverything, startPractice };
+                        return <ResultsScreen resultsData={resultsData} handlers={resultHandlers} />;
+                    default:
+                        return <div>Error: Estado desconocido</div>;
+                }
+            };
+
+            return (
+                <div className="min-h-screen p-4 sm:p-6 md:p-8">
+                    <div className="max-w-4xl mx-auto">
+                        <header className="bg-blue-600 text-white p-6 rounded-t-lg shadow-lg mb-6">
+                            <h1 className="text-3xl font-bold">Sistema de Práctica Gramatical</h1>
+                            <p className="mt-2 opacity-90">Crea ejercicios para practicar el orden de las palabras en cualquier idioma.</p>
+                        </header>
+                        <main>
+                            {renderContent()}
+                        </main>
+                    </div>
+                </div>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>

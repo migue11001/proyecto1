@@ -1,0 +1,8 @@
+[phases.setup]
+nixpkgs = ['python3']
+
+[phases.build]
+cmds = ['echo "Static HTML files ready for deployment"']
+
+[start]
+cmd = 'python3 -m http.server $PORT'
