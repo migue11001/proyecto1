@@ -14,9 +14,18 @@
     <!-- Babel para compilar JSX directamente en el navegador -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         /* Estilos y animaciones personalizadas */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -46,9 +55,25 @@
         .animate-pulse-once {
             animation: pulseOnce 0.6s ease-in-out;
         }
+
+        /* Glass morphism styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -63,25 +88,25 @@
 
         // --- COMPONENTES HIJOS (UI) ---
         const InputScreen = ({ grammarTitle, examplesText, customGrammarPattern, onInputChange, processExamples }) => (
-          <div className="bg-white p-6 rounded-lg shadow-md animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Crear un nuevo ejercicio</h2>
+          <div className="glass-card p-6 animate-fade-in">
+            <h2 className="text-2xl font-bold mb-4" style={{color: '#FFD700'}}>Crear un nuevo ejercicio</h2>
             <div className="space-y-4">
                 <div>
-                    <label htmlFor="grammarTitle" className="block text-gray-700 font-semibold mb-2">Título de la estructura gramatical:</label>
-                    <input id="grammarTitle" name="grammarTitle" type="text" value={grammarTitle} onChange={onInputChange} className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ej: Presente Simple con adverbios"/>
+                    <label htmlFor="grammarTitle" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Título de la estructura gramatical:</label>
+                    <input id="grammarTitle" name="grammarTitle" type="text" value={grammarTitle} onChange={onInputChange} className="w-full border-none rounded-md p-3" style={{background: 'rgba(255, 255, 255, 0.9)', color: '#333', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'}} placeholder="Ej: Presente Simple con adverbios"/>
                 </div>
                 <div>
-                    <label htmlFor="examplesText" className="block text-gray-700 font-semibold mb-2">Ejemplos (uno por línea):</label>
-                    <textarea id="examplesText" name="examplesText" value={examplesText} onChange={onInputChange} className="w-full border border-gray-300 rounded-md p-2 h-40 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ej:&#10;She always drinks coffee.&#10;I never eat meat.&#10;They sometimes play tennis."/>
+                    <label htmlFor="examplesText" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Ejemplos (uno por línea):</label>
+                    <textarea id="examplesText" name="examplesText" value={examplesText} onChange={onInputChange} className="w-full border-none rounded-md p-3 h-40" style={{background: 'rgba(255, 255, 255, 0.9)', color: '#333', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'}} placeholder="Ej:&#10;She always drinks coffee.&#10;I never eat meat.&#10;They sometimes play tennis."/>
                 </div>
                 <div>
-                    <label htmlFor="customGrammarPattern" className="block text-gray-700 font-semibold mb-2">Patrón gramatical personalizado (opcional):</label>
-                    <input id="customGrammarPattern" name="customGrammarPattern" type="text" value={customGrammarPattern} onChange={onInputChange} className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ej: [20, 50, 2, 10]"/>
-                    <p className="text-sm text-gray-500 mt-1">Formato: Array JSON de códigos. Si se deja vacío, se usará el del primer ejemplo.</p>
+                    <label htmlFor="customGrammarPattern" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Patrón gramatical personalizado (opcional):</label>
+                    <input id="customGrammarPattern" name="customGrammarPattern" type="text" value={customGrammarPattern} onChange={onInputChange} className="w-full border-none rounded-md p-3" style={{background: 'rgba(255, 255, 255, 0.9)', color: '#333', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'}} placeholder="Ej: [20, 50, 2, 10]"/>
+                    <p className="text-sm mt-1" style={{color: '#B0B0B0'}}>Formato: Array JSON de códigos. Si se deja vacío, se usará el del primer ejemplo.</p>
                 </div>
             </div>
             <div className="flex justify-end mt-6">
-                <button onClick={processExamples} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-150">
+                <button onClick={processExamples} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300" style={{background: 'linear-gradient(45deg, #4ECDC4, #44A08D)', border: 'none', cursor: 'pointer'}}>
                     Comenzar Práctica
                 </button>
             </div>
@@ -101,14 +126,14 @@
             };
 
             return (
-                <div className="bg-white p-6 rounded-lg shadow-md space-y-6 animate-fade-in">
+                <div className="glass-card p-6 space-y-6 animate-fade-in">
                     <div className="flex justify-between items-center border-b pb-4">
-                        <h2 className="text-xl font-bold text-gray-800">{grammarTitle}</h2>
-                        <div className="text-gray-600 font-semibold">Ejemplo {currentExampleIndex + 1} de {examplesLength}</div>
+                        <h2 className="text-xl font-bold" style={{color: '#FFD700'}}>{grammarTitle}</h2>
+                        <div className="font-semibold" style={{color: '#E0E0E0'}}>Ejemplo {currentExampleIndex + 1} de {examplesLength}</div>
                     </div>
                     
                     <div>
-                        <h3 className="font-semibold mb-2 text-gray-700">Estructura gramatical:</h3>
+                        <h3 className="font-semibold mb-2" style={{color: '#E0E0E0'}}>Estructura gramatical:</h3>
                         <div className="flex flex-wrap gap-2">
                             {grammarPattern.map((code, index) => (
                                 <span key={index} className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-1 rounded-full">
@@ -118,7 +143,7 @@
                         </div>
                     </div>
 
-                    <h3 className="font-semibold text-gray-700">Ordena las palabras para formar la oración correcta:</h3>
+                    <h3 className="font-semibold" style={{color: '#E0E0E0'}}>Ordena las palabras para formar la oración correcta:</h3>
                     
                     <div className="flex flex-wrap gap-3 min-h-[60px] p-2 bg-gray-50 rounded-lg border">
                         {userAnswer.map((word, index) => (
@@ -159,14 +184,14 @@
 
                     <div className="flex justify-between items-center pt-4 border-t">
                         <div>
-                            <button onClick={resetCurrentExercise} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2 transition-colors">Reiniciar</button>
-                            <button onClick={backToInput} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Volver</button>
+                            <button onClick={resetCurrentExercise} className="text-white font-bold py-2 px-4 rounded-full mr-2 transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #667eea, #764ba2)', border: 'none', cursor: 'pointer'}}>Reiniciar</button>
+                            <button onClick={backToInput} className="text-white font-bold py-2 px-4 rounded-full transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #667eea, #764ba2)', border: 'none', cursor: 'pointer'}}>Volver</button>
                         </div>
                         <div>
                             {feedback && feedback.correct ? (
-                                <button onClick={nextExample} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-md animate-pulse-once">Siguiente →</button>
+                                <button onClick={nextExample} className="text-white font-bold py-2 px-6 rounded-full shadow-md animate-pulse-once transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #4ECDC4, #44A08D)', border: 'none', cursor: 'pointer'}}>Siguiente →</button>
                             ) : (
-                                <button onClick={checkAnswer} disabled={feedback !== null} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">Verificar</button>
+                                <button onClick={checkAnswer} disabled={feedback !== null} className="text-white font-bold py-2 px-6 rounded-full transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" style={{background: feedback !== null ? '#888' : 'linear-gradient(45deg, #FF6B6B, #FF8E53)', border: 'none', cursor: feedback !== null ? 'not-allowed' : 'pointer'}}>Verificar</button>
                             )}
                         </div>
                     </div>
@@ -181,16 +206,16 @@
             const percentage = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
             
             return (
-                <div className="bg-white p-6 rounded-lg shadow-md text-center animate-fade-in">
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Resultados de la Práctica</h2>
-                    <div className="p-6 bg-blue-50 rounded-lg mb-6">
-                        <p className="text-xl mb-2 text-gray-700">Completaste el ejercicio de <span className="font-bold text-blue-600">{grammarTitle}</span></p>
-                        <p className="text-5xl font-bold text-blue-600 my-4">{percentage}%</p>
-                        <p className="text-gray-600">({correctAnswers} de {total} correctos)</p>
+                <div className="glass-card p-6 text-center animate-fade-in">
+                    <h2 className="text-2xl font-bold mb-4" style={{color: '#FFD700'}}>Resultados de la Práctica</h2>
+                    <div className="p-6 rounded-lg mb-6" style={{background: 'rgba(255, 215, 0, 0.1)', border: '1px solid rgba(255, 215, 0, 0.2)'}}>
+                        <p className="text-xl mb-2" style={{color: '#E0E0E0'}}>Completaste el ejercicio de <span className="font-bold" style={{color: '#FFD700'}}>{grammarTitle}</span></p>
+                        <p className="text-5xl font-bold my-4" style={{color: '#FFD700'}}>{percentage}%</p>
+                        <p style={{color: '#B0B0B0'}}>({correctAnswers} de {total} correctos)</p>
                     </div>
                     <div className="flex justify-center gap-4">
-                        <button onClick={resetEverything} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Volver al Inicio</button>
-                        <button onClick={() => startPractice(examples)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Practicar de Nuevo</button>
+                        <button onClick={resetEverything} className="text-white font-bold py-2 px-4 rounded-full transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #667eea, #764ba2)', border: 'none', cursor: 'pointer'}}>Volver al Inicio</button>
+                        <button onClick={() => startPractice(examples)} className="text-white font-bold py-2 px-4 rounded-full transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #4ECDC4, #44A08D)', border: 'none', cursor: 'pointer'}}>Practicar de Nuevo</button>
                     </div>
                 </div>
             );
@@ -381,9 +406,9 @@
             return (
                 <div className="min-h-screen p-4 sm:p-6 md:p-8">
                     <div className="max-w-4xl mx-auto">
-                        <header className="bg-blue-600 text-white p-6 rounded-t-lg shadow-lg mb-6">
-                            <h1 className="text-3xl font-bold">Sistema de Práctica Gramatical</h1>
-                            <p className="mt-2 opacity-90">Crea ejercicios para practicar el orden de las palabras en cualquier idioma.</p>
+                        <header className="glass-header text-white p-6 shadow-lg mb-6">
+                            <h1 className="text-3xl font-bold" style={{color: '#FFD700', textShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'}}>Sistema de Práctica Gramatical</h1>
+                            <p className="mt-2 opacity-90" style={{color: '#E0E0E0'}}>Crea ejercicios para practicar el orden de las palabras en cualquier idioma.</p>
                         </header>
                         <main>
                             {renderContent()}

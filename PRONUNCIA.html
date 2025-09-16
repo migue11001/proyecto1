@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Le Mie Parole - Pronunciation Trainer</title>
+    <title>🎯 mis palabras  </title>
     <style>
         * {
             margin: 0;
@@ -244,32 +244,32 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Le Mie Parole</h1>
-            <p>Crea la tua lista personale di parole inglesi e pratica la pronuncia!</p>
+            <h1>🎯 Palabras Para Memorizar</h1>
+            <p>crea una lista de 20 palabras diarias y practica la pronunciación</p>
         </div>
         
         <div class="add-word-section">
-            <h2 style="text-align: center; margin-bottom: 20px;">🆕 Aggiungi una nuova parola</h2>
+            <h2 style="text-align: center; margin-bottom: 20px;">🆕 Vamos Demuestra Tu Valor!</h2>
             <div class="add-word-form">
                 <input type="text" id="word-input" class="input-field" placeholder="Parola inglese (es: beautiful)" maxlength="50">
                 <input type="text" id="pronunciation-input" class="input-field" placeholder="Pronuncia (es: byoo-ti-ful)" maxlength="100">
-                <button class="btn btn-success" onclick="addWord()">➕ Aggiungi</button>
+                <button class="btn btn-success" onclick="addWord()">➕ Agregar</button>
             </div>
             <p style="text-align: center; color: #E0E0E0; font-size: 0.9em; margin-top: 10px;">
-                💡 Se non inserisci la pronuncia, il sistema ne genererà una automaticamente!
+                💡 Existen mas de 600.000 palabras registradas en Ingles y con practica puedes aprenderlas todas!
             </p>
         </div>
         
         <div class="counter" id="word-counter">
-            📚 0 parole nella tua lista
+            📚 0 palabras en tu lista
         </div>
         
         <div class="words-grid" id="words-grid">
             <div class="empty-state">
-                <h3>📝 Lista vuota</h3>
-                <p>Aggiungi la tua prima parola usando il modulo qui sopra!</p>
+                <h3>📝 Lista vacia</h3>
+                <p>Agrega una palabra aqui arriba</p>
                 <p style="margin-top: 15px; font-size: 0.9em; color: #B0B0B0;">
-                    Esempi: restaurant, communication, entrepreneur, psychology...
+                    Ejemplos: restaurant, communication, entrepreneur, psychology...
                 </p>
             </div>
         </div>
@@ -292,16 +292,16 @@
                     speechSynthesis.getVoices();
                     
                     speechSynthesis.onvoiceschanged = () => {
-                        console.log('Voci caricate:', speechSynthesis.getVoices().length);
+                        console.log('Voz cargada:', speechSynthesis.getVoices().length);
                     };
                     
                     // Test iniziale
                     setTimeout(() => {
                         const voices = speechSynthesis.getVoices();
-                        console.log('Voci disponibili:', voices.map(v => v.name + ' - ' + v.lang));
+                        console.log('Voz disponible:', voices.map(v => v.name + ' - ' + v.lang));
                     }, 1000);
                 } else {
-                    this.showNotification('⚠️ Sintesi vocale non supportata da questo browser', 'error');
+                    this.showNotification('⚠️ no soporte del browser', 'error');
                 }
             }
             
@@ -327,7 +327,7 @@
                 }
                 
                 if (!word) {
-                    this.showNotification('⚠️ Inserisci una parola!', 'error');
+                    this.showNotification('⚠️ Vamos agrega una palabra!', 'error');
                     return;
                 }
                 
@@ -341,7 +341,7 @@
                         pronunciation: pronunciation || this.generatePronunciation(word),
                         added: new Date().toISOString()
                     };
-                    this.showNotification(`🔄 "${word}" aggiornata!`, 'success');
+                    this.showNotification(`🔄 "${word}" actualizada!`, 'success');
                 } else {
                     // Se abbiamo raggiunto il limite, rimuovi la parola più vecchia
                     if (currentWordsCount >= this.maxWords) {
@@ -364,7 +364,7 @@
                     };
                     
                     if (currentWordsCount < this.maxWords) {
-                        this.showNotification(`✅ "${word}" aggiunta con successo!`, 'success');
+                        this.showNotification(`✅ "${word}" agregada!`, 'success');
                     }
                 }
                 
@@ -388,27 +388,27 @@
             removeWord(wordKey) {
                 const word = this.words[wordKey];
                 if (!word) {
-                    this.showNotification('❌ Parola non trovata!', 'error');
+                    this.showNotification('❌ no encontrada!', 'error');
                     return;
                 }
                 
-                if (confirm(`🗑️ Sei sicuro di voler rimuovere "${word.word}"?`)) {
+                if (confirm(`🗑️ estas seguro "${word.word}"?`)) {
                     try {
                         delete this.words[wordKey];
                         this.saveWords();
                         this.renderWords();
-                        this.showNotification(`🗑️ "${word.word}" rimossa con successo!`, 'success');
-                        console.log('Parola rimossa:', word.word);
+                        this.showNotification(`🗑️ "${word.word}" removida con exito!`, 'success');
+                        console.log('Palabra removida:', word.word);
                     } catch (error) {
                         console.error('Errore nella rimozione:', error);
-                        this.showNotification('❌ Errore nella rimozione della parola', 'error');
+                        this.showNotification('❌ Error eliminacion', 'error');
                     }
                 }
             }
             
             speakWord(wordKey) {
                 if (!('speechSynthesis' in window)) {
-                    this.showNotification('❌ Sintesi vocale non supportata', 'error');
+                    this.showNotification('❌ Sintesis no encontrada', 'error');
                     return;
                 }
                 
@@ -432,22 +432,22 @@
                 
                 if (englishVoices.length > 0) {
                     utterance.voice = englishVoices[0];
-                    console.log('Usando voce:', englishVoices[0].name);
+                    console.log('Usando voz:', englishVoices[0].name);
                 } else {
-                    console.log('Nessuna voce inglese trovata, uso voce di default');
+                    console.log('Ninguna voz inglesa trovata, uso voz default');
                 }
                 
                 utterance.onstart = () => {
-                    console.log('Iniziando a parlare:', wordData.word);
+                    console.log('Inicio:', wordData.word);
                 };
                 
                 utterance.onend = () => {
-                    console.log('Finito di parlare:', wordData.word);
+                    console.log('terminé:', wordData.word);
                 };
                 
                 utterance.onerror = (e) => {
                     console.error('Errore speech synthesis:', e);
-                    this.showNotification('❌ Errore nella riproduzione audio', 'error');
+                    this.showNotification('❌ Errore audio', 'error');
                 };
                 
                 try {
@@ -455,7 +455,7 @@
                     this.showNotification(`🔊 Pronunciando "${wordData.word}"...`, 'success');
                 } catch (error) {
                     console.error('Errore nel speech synthesis:', error);
-                    this.showNotification('❌ Errore nella riproduzione audio', 'error');
+                    this.showNotification('❌ Error audio', 'error');
                 }
             }
             
@@ -507,13 +507,13 @@
                 
                 if (currentCount >= this.maxWords) {
                     counterClass = 'limit';
-                    counterText = `🔴 ${currentCount}/${this.maxWords} parole (LIMITE RAGGIUNTO - le nuove sostituiranno le vecchie)`;
+                    counterText = `🔴 ${currentCount}/${this.maxWords} palabras (LIMITE PALABRAS - las ultimas palabras se eliminaran)`;
                 } else if (currentCount >= this.maxWords * 0.8) {
                     counterClass = 'warning';
-                    counterText = `🟡 ${currentCount}/${this.maxWords} parole (quasi al limite!)`;
+                    counterText = `🟡 ${currentCount}/${this.maxWords} palabras (al limite!)`;
                 } else {
                     counterClass = '';
-                    counterText = `📚 ${currentCount}/${this.maxWords} parole nella tua lista`;
+                    counterText = `📚 ${currentCount}/${this.maxWords} palabras en tu lista`;
                 }
                 
                 counter.className = `counter ${counterClass}`;
@@ -522,10 +522,10 @@
                 if (wordsArray.length === 0) {
                     grid.innerHTML = `
                         <div class="empty-state">
-                            <h3>📝 Lista vuota</h3>
-                            <p>Aggiungi la tua prima parola usando il modulo qui sopra!</p>
+                            <h3>📝 Lista vacia</h3>
+                            <p>Agrega tu primera palabra!</p>
                             <p style="margin-top: 15px; font-size: 0.9em; color: #B0B0B0;">
-                                Puoi aggiungere fino a ${this.maxWords} parole. Quando raggiungi il limite, le nuove parole sostituiranno automaticamente quelle più vecchie.
+                                Puedes agregar ${this.maxWords} palabras. si llegas al limite diario las ultimas palabras serán removidas.
                             </p>
                         </div>
                     `;
@@ -538,7 +538,7 @@
                 grid.innerHTML = wordsArray.map(([key, data], index) => {
                     const isOldest = index === wordsArray.length - 1 && currentCount >= this.maxWords;
                     const cardClass = isOldest ? 'word-card oldest-card' : 'word-card';
-                    const ageIndicator = isOldest ? '<div style="color: #FF8E53; font-size: 0.8em; margin-bottom: 5px;">⚠️ Prossima da sostituire</div>' : '';
+                    const ageIndicator = isOldest ? '<div style="color: #FF8E53; font-size: 0.8em; margin-bottom: 5px;">⚠️ Proxima sostitución</div>' : '';
                     
                     return `
                         <div class="${cardClass}">
@@ -547,7 +547,7 @@
                             <div class="word-pronunciation">🔤 ${data.pronunciation}</div>
                             <div class="word-controls">
                                 <button class="btn btn-primary" onclick="myWords.speakWord('${key}')">
-                                    🔊 Ascolta
+                                    🔊 Voz
                                 </button>
                                 <div style="font-size: 0.8em; color: #B0B0B0; margin-top: 5px;">
                                     Aggiunta: ${new Date(data.added).toLocaleDateString('it-IT')}
@@ -576,7 +576,7 @@
                     // Salva in memoria JS (non localStorage per rispettare le limitazioni)
                     window.myWordsData = this.words;
                 } catch (error) {
-                    console.error('Errore nel salvataggio:', error);
+                    console.error('Error de memoria:', error);
                 }
             }
             
@@ -585,7 +585,7 @@
                     // Carica dalla memoria JS
                     return window.myWordsData || {};
                 } catch (error) {
-                    console.error('Errore nel caricamento:', error);
+                    console.error('Error de carga:', error);
                     return {};
                 }
             }
@@ -608,7 +608,7 @@
                 
                 // Aggiungi messaggio informativo
                 setTimeout(() => {
-                    myWords.showNotification(`ℹ️ 3 parole di esempio aggiunte. Limite: ${myWords.maxWords} parole totali.`, 'success');
+                    myWords.showNotification(`ℹ️ 3 palabras ejemplo: ${myWords.maxWords} palabras totales.`, 'success');
                 }, 1000);
             }
         }, 500);
