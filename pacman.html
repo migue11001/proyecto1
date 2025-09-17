@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Pac-Man Secuencial</title>
     <!-- Tailwind CSS para estilos rápidos y modernos -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -68,6 +68,69 @@
             border-radius: 20px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Canvas responsive */
+        .game-canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Mobile controls */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 215, 0, 0.9);
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            color: black;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.1s;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:active {
+            background: rgba(255, 215, 0, 1);
+            transform: scale(0.95);
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-center {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: block;
+            }
+            
+            .game-canvas {
+                width: 100%;
+                max-width: min(100vw - 40px, 512px);
+            }
         }
     </style>
 </head>
@@ -560,6 +623,20 @@
             return () => window.removeEventListener("keydown", keydown);
           }, [running]);
 
+          // Mobile controls handler
+          function handleMobileControl(direction, e) {
+            e.preventDefault();
+            if (!running) return;
+            const S = stateRef.current;
+            switch (direction) {
+              case "up": S.pac.ndx = 0; S.pac.ndy = -PAC_SPEED; break;
+              case "down": S.pac.ndx = 0; S.pac.ndy = PAC_SPEED; break;
+              case "left": S.pac.ndx = -PAC_SPEED; S.pac.ndy = 0; break;
+              case "right": S.pac.ndx = PAC_SPEED; S.pac.ndy = 0; break;
+              default: break;
+            }
+          }
+
           // ===== Loop =====
           React.useEffect(() => {
             const canvas = canvasRef.current;
@@ -631,7 +708,7 @@
                   </div>
                   
                   <div className="flex justify-center">
-                    <canvas ref={canvasRef} className="block bg-black border-2 border-yellow-300 rounded" />
+                    <canvas ref={canvasRef} className="game-canvas block bg-black border-2 border-yellow-300 rounded" />
                   </div>
 
                   {showStart && (
@@ -667,6 +744,47 @@
                       </div>
                     </div>
                   )}
+
+                  {/* Mobile Controls */}
+                  <div className="mobile-controls">
+                    <div className="control-grid">
+                      <div></div>
+                      <button 
+                        className="control-btn" 
+                        onTouchStart={(e) => handleMobileControl('up', e)}
+                        onTouchEnd={(e) => e.preventDefault()}
+                      >
+                        ↑
+                      </button>
+                      <div></div>
+                      
+                      <button 
+                        className="control-btn" 
+                        onTouchStart={(e) => handleMobileControl('left', e)}
+                        onTouchEnd={(e) => e.preventDefault()}
+                      >
+                        ←
+                      </button>
+                      <div className="control-center"></div>
+                      <button 
+                        className="control-btn" 
+                        onTouchStart={(e) => handleMobileControl('right', e)}
+                        onTouchEnd={(e) => e.preventDefault()}
+                      >
+                        →
+                      </button>
+                      
+                      <div></div>
+                      <button 
+                        className="control-btn" 
+                        onTouchStart={(e) => handleMobileControl('down', e)}
+                        onTouchEnd={(e) => e.preventDefault()}
+                      >
+                        ↓
+                      </button>
+                      <div></div>
+                    </div>
+                  </div>
                 </main>
               </div>
             </div>
