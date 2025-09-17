@@ -79,12 +79,8 @@
         /* Mobile controls */
         .mobile-controls {
             display: none;
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            padding-bottom: env(safe-area-inset-bottom);
+            margin-top: 20px;
+            justify-content: center;
         }
 
         .control-btn {
@@ -125,17 +121,12 @@
 
         @media (max-width: 768px) {
             .mobile-controls {
-                display: block;
+                display: flex;
             }
             
             .game-canvas {
                 width: 100%;
                 max-width: min(100vw - 40px, 512px);
-                margin-bottom: 120px;
-            }
-            
-            body {
-                padding-bottom: 160px;
             }
         }
     </style>
@@ -717,40 +708,6 @@
                     <canvas ref={canvasRef} className="game-canvas block bg-black border-2 border-yellow-300 rounded" />
                   </div>
 
-                  {showStart && (
-                    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10 rounded-xl overflow-y-auto">
-                      <div className="glass-card p-8 text-center w-[min(90vw,560px)] max-h-[90vh] overflow-y-auto animate-pop-in">
-                        <h2 className="text-3xl text-yellow-300 mb-6 font-mono animate-pulse">🎮 PAC‑MAN SECUENCIAL</h2>
-                        
-                        <div className="mb-6">
-                          <label className="text-sm text-zinc-300 block mb-3">
-                            Ingresa tus palabras en inglés (una por línea o separadas por comas):
-                          </label>
-                          <textarea
-                            value={customWords}
-                            onChange={(e) => setCustomWords(e.target.value)}
-                            placeholder="apple&#10;banana&#10;orange&#10;grape&#10;watermelon"
-                            className="w-full h-32 p-3 bg-zinc-800 text-white rounded border border-zinc-600 font-mono text-sm"
-                            style={{background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)'}}
-                          />
-                          <p className="text-xs text-zinc-400 mt-3">
-                            🎯 Deberás comer las palabras en orden secuencial<br/>
-                            👻 ¡Huye de los fantasmas o perderás una vida!
-                          </p>
-                        </div>
-
-                        <button 
-                          onClick={startGame} 
-                          className="px-8 py-4 rounded-full text-black text-lg font-bold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
-                          style={{background: 'linear-gradient(45deg, #FFD700, #FFA500)', border: 'none', cursor: 'pointer'}}
-                        >
-                          🚀 START GAME
-                        </button>
-                        <p className="text-xs text-zinc-400 mt-4">🎮 Usa las FLECHAS para moverte</p>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Mobile Controls - Only show when game is running */}
                   {running && (
                     <div className="mobile-controls">
@@ -790,6 +747,40 @@
                           ↓
                         </button>
                         <div></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {showStart && (
+                    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10 rounded-xl overflow-y-auto">
+                      <div className="glass-card p-8 text-center w-[min(90vw,560px)] max-h-[90vh] overflow-y-auto animate-pop-in">
+                        <h2 className="text-3xl text-yellow-300 mb-6 font-mono animate-pulse">🎮 PAC‑MAN SECUENCIAL</h2>
+                        
+                        <div className="mb-6">
+                          <label className="text-sm text-zinc-300 block mb-3">
+                            Ingresa tus palabras en inglés (una por línea o separadas por comas):
+                          </label>
+                          <textarea
+                            value={customWords}
+                            onChange={(e) => setCustomWords(e.target.value)}
+                            placeholder="apple&#10;banana&#10;orange&#10;grape&#10;watermelon"
+                            className="w-full h-32 p-3 bg-zinc-800 text-white rounded border border-zinc-600 font-mono text-sm"
+                            style={{background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)'}}
+                          />
+                          <p className="text-xs text-zinc-400 mt-3">
+                            🎯 Deberás comer las palabras en orden secuencial<br/>
+                            👻 ¡Huye de los fantasmas o perderás una vida!
+                          </p>
+                        </div>
+
+                        <button 
+                          onClick={startGame} 
+                          className="px-8 py-4 rounded-full text-black text-lg font-bold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                          style={{background: 'linear-gradient(45deg, #FFD700, #FFA500)', border: 'none', cursor: 'pointer'}}
+                        >
+                          🚀 START GAME
+                        </button>
+                        <p className="text-xs text-zinc-400 mt-4">🎮 Usa las FLECHAS para moverte</p>
                       </div>
                     </div>
                   )}
