@@ -43,10 +43,27 @@
         }
         
         .apps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            display: flex;
+            flex-direction: row;
+            gap: 25px;
             margin-top: 40px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+        
+        .apps-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .apps-grid::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .apps-grid::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            border-radius: 10px;
         }
         
         .app-card {
@@ -56,16 +73,55 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            min-width: 320px;
+            max-width: 350px;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
         }
         
         .app-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-15px) scale(1.02);
             background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .app-card:hover::before {
+            left: 100%;
         }
         
         .app-icon {
             font-size: 4em;
             margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .app-card:hover .app-icon {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        .app-icon:hover {
+            animation: bounce 1s ease infinite;
         }
         
         .app-title {
@@ -105,8 +161,31 @@
             }
             
             .apps-grid {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: center;
+                overflow-x: visible;
             }
+            
+            .app-card {
+                min-width: 100%;
+                max-width: 100%;
+            }
+        }
+        
+        /* Agregar un indicador de scroll para escritorio */
+        .scroll-indicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.5em;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
@@ -117,26 +196,52 @@
             <p>Herramientas interactivas para el aprendizaje de idiomas</p>
         </div>
         
-        <div class="apps-grid">
-            <div class="app-card">
-                <div class="app-icon">🎯</div>
-                <div class="app-title"> Practicar Vocabulario</div>
-                <div class="app-description">
-                    Entrenador de pronunciación para palabras en inglés. 
-                    Crea tu lista personalizada y practica con síntesis de voz.
+        <div style="position: relative;">
+            <div class="apps-grid">
+                <div class="app-card">
+                    <div class="app-icon">🎯</div>
+                    <div class="app-title">Practicar Vocabulario</div>
+                    <div class="app-description">
+                        Entrenador de pronunciación para palabras en inglés. 
+                        Crea tu lista personalizada y practica con síntesis de voz.
+                    </div>
+                    <a href="PRONUNCIA.html" class="app-link">Comenzar Práctica</a>
                 </div>
-                <a href="PRONUNCIA.html" class="app-link">Comenzar Práctica</a>
-            </div>
-            
-            <div class="app-card">
-                <div class="app-icon">📚</div>
-                <div class="app-title">Práctica Gramatical</div>
-                <div class="app-description">
-                    Sistema interactivo para practicar estructuras gramaticales.
-                    Crea ejercicios de ordenamiento de palabras.
+                
+                <div class="app-card">
+                    <div class="app-icon">📚</div>
+                    <div class="app-title">Práctica Gramatical</div>
+                    <div class="app-description">
+                        Sistema interactivo para practicar estructuras gramaticales.
+                        Crea ejercicios de ordenamiento de palabras.
+                    </div>
+                    <a href="gramatica.html" class="app-link">Empezar Ejercicios</a>
                 </div>
-                <a href="gramatica.html" class="app-link">Empezar Ejercicios</a>
+                
+                <div class="app-card">
+                    <div class="app-icon">🎮</div>
+                    <div class="app-title">Pac-Man Secuencial</div>
+                    <div class="app-description">
+                        Juego interactivo donde debes comer palabras en orden secuencial.
+                        ¡Huye de los fantasmas mientras aprendes vocabulario!
+                    </div>
+                    <a href="pacman.html" class="app-link">Jugar Ahora</a>
+                </div>
+                
+                <!-- Espacio para futuras aplicaciones -->
+                <div class="app-card" style="background: rgba(255, 255, 255, 0.05); border: 2px dashed rgba(255, 255, 255, 0.3);">
+                    <div class="app-icon">➕</div>
+                    <div class="app-title">Próximamente</div>
+                    <div class="app-description">
+                        Más aplicaciones educativas están en desarrollo.
+                        ¡Mantente atento a las nuevas funcionalidades!
+                    </div>
+                    <div class="app-link" style="background: rgba(255, 255, 255, 0.1); cursor: not-allowed;">
+                        Próximamente
+                    </div>
+                </div>
             </div>
+            <div class="scroll-indicator">→</div>
         </div>
     </div>
 </body>

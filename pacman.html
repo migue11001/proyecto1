@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Secuencial</title>
+    <!-- Tailwind CSS para estilos rápidos y modernos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React y ReactDOM para la funcionalidad de la aplicación -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel para compilar JSX directamente en el navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Estilos y animaciones personalizadas */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        /* Definición de animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            80% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulseOnce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Clases para usar las animaciones */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .animate-pop-in {
+            animation: popIn 0.3s ease-out forwards;
+        }
+        .animate-pulse-once {
+            animation: pulseOnce 0.6s ease-in-out;
+        }
+
+        /* Glass morphism styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Juego de Pacman Secuencial - Come las palabras en orden
+        // Los fantasmas persiguen al Pacman, el Pacman debe comer las palabras
+
+        function SequentialPacman() {
+          // ===== UI =====
+          const [score, setScore] = React.useState(0);
+          const [lives, setLives] = React.useState(3);
+          const [running, setRunning] = React.useState(false);
+          const [message, setMessage] = React.useState("¡Prepárate para jugar!");
+          const [showStart, setShowStart] = React.useState(true);
+          const [customWords, setCustomWords] = React.useState("");
+          const [wordList, setWordList] = React.useState([]);
+          const [currentWordIndex, setCurrentWordIndex] = React.useState(0);
+
+          // ===== Canvas =====
+          const canvasRef = React.useRef(null);
+          const rafRef = React.useRef(0);
+
+          // ===== Constantes =====
+          const TILE = 32;
+          const PAC_SPEED = 4;
+          const GHOST_SPEED = 2;
+          const PILL_SPEED = 1;
+
+          const mapRaw = [
+            "################",
+            "#..#......#...#",
+            "#.##.####.##.##",
+            "#..............#",
+            "#.##.#....#.##.#",
+            "#....#..G.#....#",
+            "#.##.#....#.##.#",
+            "#..............#",
+            "#.##.#....#.##.#",
+            "#....#....#....#",
+            "#.##.####.##.##",
+            "#..............#",
+            "################",
+          ];
+
+          // Normaliza a rectangular
+          const COLS = Math.max(...mapRaw.map((r) => r.length));
+          const ROWS = mapRaw.length;
+          const map = mapRaw.map((r) => (r + "#".repeat(Math.max(0, COLS - r.length))).slice(0, COLS));
+
+          const DEFAULT_WORDS = ["apple", "banana", "orange", "grape", "lemon"];
+
+          // ===== Estado de juego (mutables) =====
+          const stateRef = React.useRef({
+            pac: { x: 1 * TILE, y: (ROWS - 2) * TILE, w: TILE, h: TILE, dx: 0, dy: 0, ndx: 0, ndy: 0, angle: 0 },
+            ghosts: [
+              { x: 8 * TILE, y: 5 * TILE, w: TILE, h: TILE, dx: GHOST_SPEED, dy: 0, color: "#FF69B4" },
+              { x: 7 * TILE, y: 5 * TILE, w: TILE, h: TILE, dx: -GHOST_SPEED, dy: 0, color: "#FF4136" },
+              { x: 9 * TILE, y: 5 * TILE, w: TILE, h: TILE, dx: 0, dy: GHOST_SPEED, color: "#00FFFF" }
+            ],
+            currentWord: null, // La palabra actual que debe comer
+            pellets: [], // puntos pequeños
+            walls: [],
+            frameCount: 0,
+          });
+
+          // ===== Helpers =====
+          function shuffle(a) {
+            const arr = [...a];
+            for (let i = arr.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+          }
+
+          function tileAt(px, py) {
+            const col = Math.floor(px / TILE);
+            const row = Math.floor(py / TILE);
+            const r = map[row];
+            return r && r[col] ? r[col] : "#";
+          }
+
+          function wallCollision(x, y) {
+            const W = TILE;
+            if (x < 0 || y < 0 || x + W > COLS * TILE || y + W > ROWS * TILE) return true;
+            const corners = [
+              [x, y],
+              [x + W - 1, y],
+              [x, y + W - 1],
+              [x + W - 1, y + W - 1],
+            ];
+            return corners.some(([cx, cy]) => tileAt(cx, cy) === "#");
+          }
+
+          function rectsOverlap(a, b) {
+            return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+          }
+
+          // Encuentra posiciones válidas para spawn aleatorio
+          function getValidSpawnPositions() {
+            const positions = [];
+            for (let y = 0; y < ROWS; y++) {
+              for (let x = 0; x < COLS; x++) {
+                if (map[y][x] === '.' && !wallCollision(x * TILE, y * TILE)) {
+                  positions.push({ x: x * TILE, y: y * TILE });
+                }
+              }
+            }
+            return positions;
+          }
+
+          function buildMap() {
+            const S = stateRef.current;
+            S.walls = [];
+            S.pellets = [];
+            let pacPos = null;
+
+            for (let y = 0; y < ROWS; y++) {
+              for (let x = 0; x < COLS; x++) {
+                const ch = map[y][x];
+                const pos = { x: x * TILE, y: y * TILE, w: TILE, h: TILE };
+                if (ch === "#") S.walls.push(pos);
+                else if (ch === ".") S.pellets.push({ x: pos.x + TILE / 2, y: pos.y + TILE / 2, r: 4 });
+              }
+            }
+
+            // Spawn de Pac‑Man en una posición segura
+            pacPos = { x: 1 * TILE, y: (ROWS - 2) * TILE };
+            S.pac.x = pacPos.x; 
+            S.pac.y = pacPos.y; 
+            S.pac.dx = 0; 
+            S.pac.dy = 0; 
+            S.pac.ndx = 0; 
+            S.pac.ndy = 0; 
+            S.pac.angle = 0;
+
+            // Resetear fantasmas a sus posiciones iniciales
+            S.ghosts[0].x = 8 * TILE; S.ghosts[0].y = 5 * TILE;
+            S.ghosts[1].x = 7 * TILE; S.ghosts[1].y = 5 * TILE;
+            S.ghosts[2].x = 9 * TILE; S.ghosts[2].y = 5 * TILE;
+          }
+
+          function loadNextWord() {
+            const S = stateRef.current;
+            
+            if (currentWordIndex >= wordList.length) {
+              // Has completado todas las palabras
+              setMessage(
+                <span style={{ color: '#00FF00' }}>
+                  ¡FELICIDADES! Completaste todas las palabras 🎉
+                </span>
+              );
+              setRunning(false);
+              setShowStart(true);
+              return;
+            }
+            
+            const targetWord = wordList[currentWordIndex];
+            
+            // Crear la palabra actual en una posición aleatoria válida
+            const validPositions = getValidSpawnPositions();
+            const pos = validPositions[Math.floor(Math.random() * validPositions.length)];
+            
+            S.currentWord = {
+              x: pos.x,
+              y: pos.y,
+              w: TILE,
+              h: TILE,
+              label: targetWord,
+              dx: PILL_SPEED * (Math.random() > 0.5 ? 1 : -1),
+              dy: PILL_SPEED * (Math.random() > 0.5 ? 1 : -1),
+              moveCounter: 0,
+              changeDirectionAt: 40 + Math.floor(Math.random() * 40)
+            };
+            
+            setMessage(
+              <span>
+                Busca y come: 
+                <span style={{ color: '#FFD700', marginLeft: '10px', textShadow: '0 0 5px #FFD700' }}>
+                  {targetWord}
+                </span>
+                <span style={{ marginLeft: '10px', color: '#CCCCCC' }}>
+                  ({currentWordIndex + 1} de {wordList.length})
+                </span>
+              </span>
+            );
+          }
+
+          function updateCurrentWord() {
+            const S = stateRef.current;
+            
+            if (!S.currentWord) return;
+            
+            const word = S.currentWord;
+            word.moveCounter++;
+            
+            // Cambiar dirección si está en una casilla perfecta
+            if (word.x % TILE === 0 && word.y % TILE === 0) {
+              let shouldChangeDirection = false;
+              
+              // Cambiar dirección si va a chocar con pared
+              if (wallCollision(word.x + word.dx, word.y + word.dy)) {
+                shouldChangeDirection = true;
+              }
+              
+              // Cambiar dirección cada cierto tiempo para serpentear
+              if (word.moveCounter >= word.changeDirectionAt) {
+                shouldChangeDirection = true;
+              }
+              
+              // En intersecciones (más de 2 direcciones disponibles), cambiar dirección más frecuentemente
+              const availableDirections = [];
+              if (!wallCollision(word.x, word.y - TILE)) availableDirections.push({ dx: 0, dy: -PILL_SPEED });
+              if (!wallCollision(word.x, word.y + TILE)) availableDirections.push({ dx: 0, dy: PILL_SPEED });
+              if (!wallCollision(word.x - TILE, word.y)) availableDirections.push({ dx: -PILL_SPEED, dy: 0 });
+              if (!wallCollision(word.x + TILE, word.y)) availableDirections.push({ dx: PILL_SPEED, dy: 0 });
+              
+              if (availableDirections.length > 2 && Math.random() < 0.4) {
+                shouldChangeDirection = true;
+              }
+              
+              if (shouldChangeDirection) {
+                // Evitar retroceder
+                const nonReverse = availableDirections.filter(d => !(d.dx === -word.dx && d.dy === -word.dy));
+                const validDirs = nonReverse.length > 0 ? nonReverse : availableDirections;
+                
+                if (validDirs.length > 0) {
+                  // 20% huir del pacman, 30% ir hacia el pacman (más interactivo), 50% aleatorio
+                  const pacDistance = Math.abs(S.pac.x - word.x) + Math.abs(S.pac.y - word.y);
+                  
+                  if (pacDistance < TILE * 4 && Math.random() < 0.2) {
+                    // Huir del pacman cuando está cerca
+                    validDirs.sort((a, b) => {
+                      const distA = Math.abs(S.pac.x - (word.x + a.dx * TILE)) + Math.abs(S.pac.y - (word.y + a.dy * TILE));
+                      const distB = Math.abs(S.pac.x - (word.x + b.dx * TILE)) + Math.abs(S.pac.y - (word.y + b.dy * TILE));
+                      return distB - distA; // Mayor distancia primero (huir)
+                    });
+                    word.dx = validDirs[0].dx;
+                    word.dy = validDirs[0].dy;
+                  } else if (pacDistance > TILE * 8 && Math.random() < 0.3) {
+                    // Acercarse al pacman cuando está lejos (más dinámico)
+                    validDirs.sort((a, b) => {
+                      const distA = Math.abs(S.pac.x - (word.x + a.dx * TILE)) + Math.abs(S.pac.y - (word.y + a.dy * TILE));
+                      const distB = Math.abs(S.pac.x - (word.x + b.dx * TILE)) + Math.abs(S.pac.y - (word.y + b.dy * TILE));
+                      return distA - distB; // Menor distancia primero (acercarse)
+                    });
+                    word.dx = validDirs[0].dx;
+                    word.dy = validDirs[0].dy;
+                  } else {
+                    // Movimiento aleatorio - preferir direcciones perpendiculares para serpentear
+                    if (validDirs.length > 1) {
+                      const perpendicular = validDirs.filter(d => 
+                        (word.dx !== 0 && d.dx === 0) || (word.dy !== 0 && d.dy === 0)
+                      );
+                      const chooseFrom = perpendicular.length > 0 && Math.random() < 0.6 ? perpendicular : validDirs;
+                      const chosen = chooseFrom[Math.floor(Math.random() * chooseFrom.length)];
+                      word.dx = chosen.dx;
+                      word.dy = chosen.dy;
+                    }
+                  }
+                  
+                  word.moveCounter = 0;
+                  // Tiempo variable para cambio de dirección - más corto en intersecciones
+                  word.changeDirectionAt = availableDirections.length > 2 ? 
+                    15 + Math.floor(Math.random() * 25) : 
+                    25 + Math.floor(Math.random() * 35);
+                }
+              }
+            }
+            
+            // Mover la palabra
+            if (!wallCollision(word.x + word.dx, word.y + word.dy)) {
+              word.x += word.dx;
+              word.y += word.dy;
+            } else {
+              // Si no puede moverse, forzar cambio de dirección
+              word.moveCounter = word.changeDirectionAt;
+            }
+          }
+
+          function draw(ctx) {
+            const S = stateRef.current;
+            ctx.clearRect(0, 0, COLS * TILE, ROWS * TILE);
+
+            // Muros
+            ctx.fillStyle = "#0033FF";
+            for (const w of S.walls) ctx.fillRect(w.x, w.y, w.w, w.h);
+
+            // Puntos
+            ctx.fillStyle = "#FFFFFF";
+            for (const p of S.pellets) {
+              ctx.beginPath(); 
+              ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); 
+              ctx.fill();
+            }
+
+            // Palabra actual con animación
+            if (S.currentWord) {
+              const p = S.currentWord;
+              const floatY = Math.sin(S.frameCount * 0.05 + p.x) * 3;
+              
+              // Sombra
+              ctx.beginPath();
+              ctx.arc(p.x + TILE / 2, p.y + TILE / 2 + 3, TILE / 3, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(0,0,0,0.4)";
+              ctx.fill();
+              
+              // Píldora dorada
+              ctx.beginPath(); 
+              ctx.arc(p.x + TILE / 2, p.y + TILE / 2 + floatY, TILE / 3, 0, Math.PI * 2);
+              ctx.fillStyle = "#FFD700"; 
+              ctx.fill();
+              
+              // Brillo
+              ctx.beginPath();
+              ctx.arc(p.x + TILE / 2 - 4, p.y + TILE / 2 - 4 + floatY, TILE / 8, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(255,255,255,0.6)";
+              ctx.fill();
+              
+              // Texto
+              const label = String(p.label || "");
+              ctx.fillStyle = "#000"; 
+              ctx.font = (label.length > 7 ? 8 : label.length > 5 ? 10 : 12) + "px monospace"; 
+              ctx.textAlign = "center"; 
+              ctx.textBaseline = "middle";
+              if (label) ctx.fillText(label, p.x + TILE / 2, p.y + TILE / 2 + floatY);
+            }
+
+            // Fantasmas
+            for (let i = 0; i < S.ghosts.length; i++) {
+              const ghost = S.ghosts[i];
+              const ghostBob = Math.sin(S.frameCount * 0.1 + i) * 2;
+              
+              ctx.fillStyle = ghost.color;
+              ctx.beginPath();
+              ctx.arc(ghost.x + TILE/2, ghost.y + TILE/2 - 3, TILE/2 - 2, Math.PI, 0, false);
+              ctx.lineTo(ghost.x + TILE - 2, ghost.y + TILE - 3 + ghostBob);
+              for(let j = 0; j < 4; j++) {
+                ctx.lineTo(ghost.x + TILE - 6 - j*7, ghost.y + TILE - 1 + ghostBob - (j%2)*3);
+              }
+              ctx.lineTo(ghost.x + 2, ghost.y + TILE - 3 + ghostBob);
+              ctx.closePath();
+              ctx.fill();
+              
+              // Ojos del fantasma
+              ctx.fillStyle = "white";
+              ctx.beginPath();
+              ctx.arc(ghost.x + 10, ghost.y + 12, 4, 0, Math.PI * 2);
+              ctx.arc(ghost.x + 22, ghost.y + 12, 4, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = "red";
+              ctx.beginPath();
+              ctx.arc(ghost.x + 10 + Math.sin(S.frameCount * 0.05) * 2, ghost.y + 12, 2, 0, Math.PI * 2);
+              ctx.arc(ghost.x + 22 + Math.sin(S.frameCount * 0.05) * 2, ghost.y + 12, 2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            // Pac‑Man
+            ctx.save(); 
+            ctx.translate(S.pac.x + TILE / 2, S.pac.y + TILE / 2); 
+            ctx.rotate(S.pac.angle); 
+            ctx.beginPath();
+            const mouth = 0.2 * Math.PI * (Math.sin(S.frameCount * 0.2) + 1);
+            ctx.arc(0, 0, TILE / 2 - 2, mouth, Math.PI * 2 - mouth); 
+            ctx.lineTo(0, 0); 
+            ctx.closePath(); 
+            ctx.fillStyle = "#FFFF00"; 
+            ctx.fill();
+            ctx.restore();
+          }
+
+          function update() {
+            const S = stateRef.current;
+            S.frameCount++;
+
+            // Actualizar Pac-Man
+            if (S.pac.x % TILE === 0 && S.pac.y % TILE === 0) {
+              const tx = S.pac.x + Math.sign(S.pac.ndx) * TILE;
+              const ty = S.pac.y + Math.sign(S.pac.ndy) * TILE;
+              if (!wallCollision(tx, ty)) {
+                S.pac.dx = S.pac.ndx; 
+                S.pac.dy = S.pac.ndy;
+                S.pac.angle = S.pac.dx > 0 ? 0 : S.pac.dx < 0 ? Math.PI : S.pac.dy > 0 ? 0.5 * Math.PI : -0.5 * Math.PI;
+              }
+            }
+            if (!wallCollision(S.pac.x + S.pac.dx, S.pac.y + S.pac.dy)) {
+              S.pac.x += S.pac.dx; 
+              S.pac.y += S.pac.dy;
+            }
+
+            // Actualizar palabra actual
+            updateCurrentWord();
+
+            // Actualizar fantasmas - persiguen al pacman
+            for (const ghost of S.ghosts) {
+              if (ghost.x % TILE === 0 && ghost.y % TILE === 0) {
+                const dirs = [];
+                if (!wallCollision(ghost.x, ghost.y - TILE)) dirs.push({ dx: 0, dy: -GHOST_SPEED, nx: ghost.x, ny: ghost.y - TILE });
+                if (!wallCollision(ghost.x, ghost.y + TILE)) dirs.push({ dx: 0, dy: GHOST_SPEED, nx: ghost.x, ny: ghost.y + TILE });
+                if (!wallCollision(ghost.x - TILE, ghost.y)) dirs.push({ dx: -GHOST_SPEED, dy: 0, nx: ghost.x - TILE, ny: ghost.y });
+                if (!wallCollision(ghost.x + TILE, ghost.y)) dirs.push({ dx: GHOST_SPEED, dy: 0, nx: ghost.x + TILE, ny: ghost.y });
+                
+                // Ordenar por distancia al pacman (menor distancia primero = perseguir)
+                dirs.sort((a, b) => 
+                  Math.abs(S.pac.x - a.nx) + Math.abs(S.pac.y - a.ny) - (Math.abs(S.pac.x - b.nx) + Math.abs(S.pac.y - b.ny))
+                );
+                
+                // Evitar retroceder a menos que sea necesario
+                const nonRev = dirs.filter((d) => d.dx !== -ghost.dx || d.dy !== -ghost.dy);
+                const chosen = nonRev[0] || dirs[0];
+                if (chosen) { 
+                  ghost.dx = chosen.dx; 
+                  ghost.dy = chosen.dy; 
+                }
+              }
+              ghost.x += ghost.dx; 
+              ghost.y += ghost.dy;
+            }
+
+            // Colisión con la palabra actual
+            if (S.currentWord && rectsOverlap(S.pac, S.currentWord)) {
+              setScore((s) => s + 100);
+              setCurrentWordIndex((i) => i + 1);
+              S.currentWord = null; // Eliminar la palabra actual
+              
+              // Cargar siguiente palabra
+              setTimeout(() => {
+                loadNextWord();
+              }, 100);
+              return;
+            }
+
+            // Colisiones con puntos pequeños
+            for (let i = S.pellets.length - 1; i >= 0; i--) {
+              const p = S.pellets[i];
+              const dx = p.x - (S.pac.x + TILE / 2);
+              const dy = p.y - (S.pac.y + TILE / 2);
+              if (Math.sqrt(dx * dx + dy * dy) < TILE / 2) {
+                setScore((s) => s + 10);
+                S.pellets.splice(i, 1);
+              }
+            }
+
+            // Colisiones con fantasmas - game over si te atrapan
+            for (const ghost of S.ghosts) {
+              if (rectsOverlap(S.pac, ghost)) {
+                loseLife();
+                return;
+              }
+            }
+
+            function loseLife() {
+              setLives((L) => {
+                const next = L - 1;
+                if (next <= 0) {
+                  setMessage(
+                    <span style={{ color: '#FF4444' }}>
+                      ¡GAME OVER! Los fantasmas te atraparon 👻
+                    </span>
+                  );
+                  setRunning(false);
+                  setShowStart(true);
+                } else {
+                  buildMap();
+                  loadNextWord();
+                }
+                return next;
+              });
+            }
+          }
+
+          // ===== Input =====
+          React.useEffect(() => {
+            function keydown(e) {
+              if (!running) return;
+              if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) e.preventDefault();
+              const S = stateRef.current;
+              switch (e.key) {
+                case "ArrowUp": S.pac.ndx = 0; S.pac.ndy = -PAC_SPEED; break;
+                case "ArrowDown": S.pac.ndx = 0; S.pac.ndy = PAC_SPEED; break;
+                case "ArrowLeft": S.pac.ndx = -PAC_SPEED; S.pac.ndy = 0; break;
+                case "ArrowRight": S.pac.ndx = PAC_SPEED; S.pac.ndy = 0; break;
+                default: break;
+              }
+            }
+            window.addEventListener("keydown", keydown);
+            return () => window.removeEventListener("keydown", keydown);
+          }, [running]);
+
+          // ===== Loop =====
+          React.useEffect(() => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            canvas.width = COLS * TILE;
+            canvas.height = ROWS * TILE;
+
+            // Inicializa mapa y palabra
+            buildMap();
+            loadNextWord();
+            const ctx = canvas.getContext("2d");
+
+            function frame() {
+              if (running) {
+                update();
+              }
+              draw(ctx);
+              rafRef.current = requestAnimationFrame(frame);
+            }
+            rafRef.current = requestAnimationFrame(frame);
+            return () => cancelAnimationFrame(rafRef.current);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+          }, [running, currentWordIndex]);
+
+          function startGame() {
+            // Procesar palabras personalizadas
+            if (customWords.trim()) {
+              const words = customWords
+                .split(/[\n,]/)
+                .map(w => w.trim())
+                .filter(w => w.length > 0);
+              
+              if (words.length === 0) {
+                alert("Por favor ingresa al menos una palabra");
+                return;
+              }
+              
+              setWordList(words);
+              setCurrentWordIndex(0);
+            } else {
+              setWordList(DEFAULT_WORDS);
+              setCurrentWordIndex(0);
+            }
+            
+            setScore(0); 
+            setLives(3); 
+            setShowStart(false); 
+            setRunning(true);
+            stateRef.current.frameCount = 0;
+          }
+
+          // ===== Render =====
+          return (
+            <div className="min-h-screen p-4 sm:p-6 md:p-8">
+              <div className="max-w-4xl mx-auto">
+                <header className="glass-header text-white p-6 shadow-lg mb-6">
+                  <h1 className="text-3xl font-bold" style={{color: '#FFD700', textShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'}}>🎮 Pac-Man Secuencial</h1>
+                  <p className="mt-2 opacity-90" style={{color: '#E0E0E0'}}>Come las palabras en orden secuencial. ¡Huye de los fantasmas!</p>
+                </header>
+                
+                <main className="glass-card p-6 animate-fade-in">
+                  <div className="flex items-center justify-between text-sm mb-4 font-mono">
+                    <div className="text-yellow-300">SCORE: {score}</div>
+                    <div className="text-red-400">LIVES: {lives}</div>
+                  </div>
+                  
+                  <div className="mb-4 text-center text-xs bg-zinc-800 border-2 border-yellow-300 rounded px-2 py-2 font-mono min-h-[40px] flex items-center justify-center">
+                    {message}
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <canvas ref={canvasRef} className="block bg-black border-2 border-yellow-300 rounded" />
+                  </div>
+
+                  {showStart && (
+                    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10 rounded-xl overflow-y-auto">
+                      <div className="glass-card p-8 text-center w-[min(90vw,560px)] max-h-[90vh] overflow-y-auto animate-pop-in">
+                        <h2 className="text-3xl text-yellow-300 mb-6 font-mono animate-pulse">🎮 PAC‑MAN SECUENCIAL</h2>
+                        
+                        <div className="mb-6">
+                          <label className="text-sm text-zinc-300 block mb-3">
+                            Ingresa tus palabras en inglés (una por línea o separadas por comas):
+                          </label>
+                          <textarea
+                            value={customWords}
+                            onChange={(e) => setCustomWords(e.target.value)}
+                            placeholder="apple&#10;banana&#10;orange&#10;grape&#10;watermelon"
+                            className="w-full h-32 p-3 bg-zinc-800 text-white rounded border border-zinc-600 font-mono text-sm"
+                            style={{background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)'}}
+                          />
+                          <p className="text-xs text-zinc-400 mt-3">
+                            🎯 Deberás comer las palabras en orden secuencial<br/>
+                            👻 ¡Huye de los fantasmas o perderás una vida!
+                          </p>
+                        </div>
+
+                        <button 
+                          onClick={startGame} 
+                          className="px-8 py-4 rounded-full text-black text-lg font-bold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                          style={{background: 'linear-gradient(45deg, #FFD700, #FFA500)', border: 'none', cursor: 'pointer'}}
+                        >
+                          🚀 START GAME
+                        </button>
+                        <p className="text-xs text-zinc-400 mt-4">🎮 Usa las FLECHAS para moverte</p>
+                      </div>
+                    </div>
+                  )}
+                </main>
+              </div>
+            </div>
+          );
+        }
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<SequentialPacman />);
+    </script>
+</body>
+</html>

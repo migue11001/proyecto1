@@ -1,13 +1,17 @@
 {
   "name": "educational-web-apps",
   "version": "1.0.0",
-  "description": "Educational web applications - Pronunciation trainer and Grammar practice system",
+  "description": "Educational web applications - Pronunciation trainer, Grammar practice system and Pac-Man Sequential game",
   "main": "index.html",
   "scripts": {
-    "start": "python -m http.server 8080",
-    "dev": "python -m http.server 3000"
+    "start": "python -m http.server $PORT",
+    "dev": "python -m http.server 3000",
+    "build": "echo 'Static site - no build needed'"
   },
-  "keywords": ["education", "language", "pronunciation", "grammar"],
+  "keywords": ["education", "language", "pronunciation", "grammar", "pacman", "games"],
   "author": "Miguel Otero",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "python": "3.x"
+  }
 }
