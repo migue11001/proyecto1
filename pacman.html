@@ -80,10 +80,11 @@
         .mobile-controls {
             display: none;
             position: fixed;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .control-btn {
@@ -130,6 +131,11 @@
             .game-canvas {
                 width: 100%;
                 max-width: min(100vw - 40px, 512px);
+                margin-bottom: 120px;
+            }
+            
+            body {
+                padding-bottom: 160px;
             }
         }
     </style>
@@ -745,46 +751,48 @@
                     </div>
                   )}
 
-                  {/* Mobile Controls */}
-                  <div className="mobile-controls">
-                    <div className="control-grid">
-                      <div></div>
-                      <button 
-                        className="control-btn" 
-                        onTouchStart={(e) => handleMobileControl('up', e)}
-                        onTouchEnd={(e) => e.preventDefault()}
-                      >
-                        ↑
-                      </button>
-                      <div></div>
-                      
-                      <button 
-                        className="control-btn" 
-                        onTouchStart={(e) => handleMobileControl('left', e)}
-                        onTouchEnd={(e) => e.preventDefault()}
-                      >
-                        ←
-                      </button>
-                      <div className="control-center"></div>
-                      <button 
-                        className="control-btn" 
-                        onTouchStart={(e) => handleMobileControl('right', e)}
-                        onTouchEnd={(e) => e.preventDefault()}
-                      >
-                        →
-                      </button>
-                      
-                      <div></div>
-                      <button 
-                        className="control-btn" 
-                        onTouchStart={(e) => handleMobileControl('down', e)}
-                        onTouchEnd={(e) => e.preventDefault()}
-                      >
-                        ↓
-                      </button>
-                      <div></div>
+                  {/* Mobile Controls - Only show when game is running */}
+                  {running && (
+                    <div className="mobile-controls">
+                      <div className="control-grid">
+                        <div></div>
+                        <button 
+                          className="control-btn" 
+                          onTouchStart={(e) => handleMobileControl('up', e)}
+                          onTouchEnd={(e) => e.preventDefault()}
+                        >
+                          ↑
+                        </button>
+                        <div></div>
+                        
+                        <button 
+                          className="control-btn" 
+                          onTouchStart={(e) => handleMobileControl('left', e)}
+                          onTouchEnd={(e) => e.preventDefault()}
+                        >
+                          ←
+                        </button>
+                        <div className="control-center"></div>
+                        <button 
+                          className="control-btn" 
+                          onTouchStart={(e) => handleMobileControl('right', e)}
+                          onTouchEnd={(e) => e.preventDefault()}
+                        >
+                          →
+                        </button>
+                        
+                        <div></div>
+                        <button 
+                          className="control-btn" 
+                          onTouchStart={(e) => handleMobileControl('down', e)}
+                          onTouchEnd={(e) => e.preventDefault()}
+                        >
+                          ↓
+                        </button>
+                        <div></div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </main>
               </div>
             </div>
