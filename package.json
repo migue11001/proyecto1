@@ -2,16 +2,16 @@
   "name": "educational-web-apps",
   "version": "1.0.0",
   "description": "Educational web applications - Pronunciation trainer, Grammar practice system and Pac-Man Sequential game",
-  "main": "index.html",
+  "main": "proyecto-voz/server.js",
   "scripts": {
-    "start": "python -m http.server $PORT",
-    "dev": "python -m http.server 3000",
-    "build": "echo 'Static site - no build needed'"
+    "start": "cd proyecto-voz && npm install && node server.js",
+    "dev": "cd proyecto-voz && npm install && nodemon server.js",
+    "build": "cd proyecto-voz && npm install"
   },
   "keywords": ["education", "language", "pronunciation", "grammar", "pacman", "games"],
   "author": "Miguel Otero",
   "license": "MIT",
   "engines": {
-    "python": "3.x"
+    "node": ">=18.0.0"
   }
 }
