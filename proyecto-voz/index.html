@@ -395,52 +395,19 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
         let recordingStartTime;
         let recordingTimer;
-        let socket;
+        let voiceNotes = new Map();
+        let noteIdCounter = 1;
         const MAX_RECORDING_TIME = 30000; // 30 seconds
         const NOTE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
         const recordButton = document.getElementById('recordButton');
         const voiceWall = document.getElementById('voiceWall');
-        
-        // Initialize WebSocket connection
-        function initializeSocket() {
-            socket = io();
-            
-            socket.on('connect', () => {
-                console.log('Connected to server');
-            });
-            
-            socket.on('current-notes', (notes) => {
-                notes.forEach(note => {
-                    createVoiceNoteFromServer(note);
-                });
-            });
-            
-            socket.on('new-voice-note', (note) => {
-                createVoiceNoteFromServer(note);
-            });
-            
-            socket.on('note-deleted', (data) => {
-                const noteElement = document.getElementById(`note-${data.noteId}`);
-                if (noteElement) {
-                    noteElement.classList.add('exploding');
-                    setTimeout(() => {
-                        noteElement.remove();
-                    }, 800);
-                }
-            });
-            
-            socket.on('new-response', (data) => {
-                addResponseToNote(data.parentNoteId, data.response);
-            });
-        }
 
         // Initialize social media links (replace with actual URLs)
         document.getElementById('tiktok-link').href = 'https://tiktok.com/@yourusername';
@@ -511,44 +478,53 @@
 
         async function createVoiceNote(audioBlob) {
             try {
-                // Upload audio to server
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'voice-note.wav');
+                // Create audio URL from blob for local playback
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const noteId = `note-${noteIdCounter++}`;
+                const createdAt = new Date();
+                const colorIndex = Math.floor(Math.random() * 8) + 1;
 
-                const response = await fetch('/api/upload-audio', {
-                    method: 'POST',
-                    body: formData
-                });
+                const voiceNote = {
+                    id: noteId,
+                    audioUrl: audioUrl,
+                    audioBlob: audioBlob,
+                    createdAt: createdAt,
+                    colorIndex: colorIndex,
+                    responses: []
+                };
 
-                if (!response.ok) {
-                    throw new Error('Upload failed');
-                }
+                // Store locally
+                voiceNotes.set(noteId, voiceNote);
 
-                const result = await response.json();
-                console.log('Audio uploaded successfully:', result);
+                // Create visual note
+                createVoiceNoteFromData(voiceNote);
+
+                // Set cleanup timer
+                setTimeout(() => {
+                    deleteVoiceNote(noteId);
+                }, NOTE_LIFETIME);
+
+                console.log('Voice note created successfully:', noteId);
 
             } catch (error) {
-                console.error('Error uploading audio:', error);
-                alert('Failed to upload voice note. Please try again.');
+                console.error('Error creating voice note:', error);
+                alert('Failed to create voice note. Please try again.');
             }
         }
 
-        function createVoiceNoteFromServer(note) {
+        function createVoiceNoteFromData(note) {
             // Don't create if already exists
             if (document.getElementById(`note-${note.id}`)) {
                 return;
             }
 
-            const createdAt = new Date(note.createdAt);
+            const createdAt = note.createdAt;
             const voiceBubble = document.createElement('div');
             voiceBubble.className = `voice-bubble bubble-color-${note.colorIndex}`;
             voiceBubble.id = `note-${note.id}`;
 
             voiceBubble.innerHTML = `
                 <div class="voice-time">${formatTime(createdAt)}</div>
-                <audio id="audio-${note.id}" style="display: none;">
-                    <source src="${note.audioUrl}" type="audio/wav">
-                </audio>
                 <div class="timer-overlay" id="timer-${note.id}">29:59</div>
                 <button class="respond-button" onclick="respondToNote('${note.id}')">
                     Reply
@@ -590,7 +566,8 @@
 
                 if (remaining <= 0) {
                     clearInterval(timer);
-                    return; // Server will handle deletion and broadcast
+                    deleteVoiceNote(noteId);
+                    return;
                 }
 
                 // Update timer display
@@ -607,6 +584,31 @@
                     }
                 }
             }, 1000);
+        }
+
+        function deleteVoiceNote(noteId) {
+            const note = voiceNotes.get(noteId);
+            if (!note) return;
+
+            // Revoke blob URLs to free memory
+            URL.revokeObjectURL(note.audioUrl);
+            note.responses.forEach(response => {
+                URL.revokeObjectURL(response.audioUrl);
+            });
+
+            // Remove from memory
+            voiceNotes.delete(noteId);
+
+            // Remove from DOM with animation
+            const noteElement = document.getElementById(`note-${noteId}`);
+            if (noteElement) {
+                noteElement.classList.add('exploding');
+                setTimeout(() => {
+                    noteElement.remove();
+                }, 800);
+            }
+            
+            console.log(`Voice note ${noteId} deleted after 30 minutes`);
         }
 
         function playAudio(audioUrl) {
@@ -685,20 +687,24 @@
 
         async function uploadResponse(parentNoteId, audioBlob) {
             try {
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'response.wav');
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const responseId = `response-${noteIdCounter++}`;
+                
+                const response = {
+                    id: responseId,
+                    audioUrl: audioUrl,
+                    audioBlob: audioBlob,
+                    createdAt: new Date()
+                };
 
-                const response = await fetch(`/api/voice-notes/${parentNoteId}/respond`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error('Response upload failed');
+                // Find parent note and add response
+                const parentNote = voiceNotes.get(parentNoteId);
+                if (parentNote) {
+                    parentNote.responses.push(response);
+                    addResponseToNote(parentNoteId, response);
                 }
 
-                const result = await response.json();
-                console.log('Response uploaded successfully:', result);
+                console.log('Response uploaded successfully:', responseId);
 
             } catch (error) {
                 console.error('Error uploading response:', error);
@@ -738,9 +744,6 @@
 
         // Initialize app
         window.addEventListener('load', async () => {
-            // Initialize WebSocket connection
-            initializeSocket();
-            
             // Show canvas on mobile
             if (isMobile()) {
                 document.getElementById('mobileCanvas').style.display = 'block';
