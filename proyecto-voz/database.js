@@ -114,25 +114,35 @@ const maintainNoteLimit = async () => {
     }
 };
 
-// Conectar a la base de datos
-const connectDB = async () => {
-    try {
-        await sequelize.authenticate();
-        console.log('✅ PostgreSQL connection established successfully');
-        
-        // Sincronizar modelos (crear tablas si no existen)
-        await sequelize.sync();
-        console.log('📊 Database models synchronized');
-        
-        // Limpiar notas expiradas al iniciar
-        await cleanupExpiredNotes();
-        await maintainNoteLimit();
-        
-        return true;
-    } catch (error) {
-        console.error('❌ Unable to connect to database:', error);
-        return false;
+// Conectar a la base de datos con retry
+const connectDB = async (retries = 5) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            console.log(`🔄 Attempting database connection (${i + 1}/${retries})...`);
+            await sequelize.authenticate();
+            console.log('✅ PostgreSQL connection established successfully');
+            
+            // Sincronizar modelos (crear tablas si no existen)
+            await sequelize.sync();
+            console.log('📊 Database models synchronized');
+            
+            // Limpiar notas expiradas al iniciar
+            await cleanupExpiredNotes();
+            await maintainNoteLimit();
+            
+            return true;
+        } catch (error) {
+            console.error(`❌ Connection attempt ${i + 1} failed:`, error.message);
+            
+            if (i < retries - 1) {
+                console.log(`⏳ Waiting 3 seconds before retry...`);
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+        }
     }
+    
+    console.error('❌ All connection attempts failed');
+    return false;
 };
 
 // Configurar limpieza automática cada 5 minutos
