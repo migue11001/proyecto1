@@ -376,7 +376,8 @@
         let noteIdCounter = 1;
         let currentlyPlayingAudio = null; // Track currently playing audio
         const MAX_RECORDING_TIME = 30000; // 30 seconds
-        const NOTE_LIFETIME = 30 * 60 * 1000; // 30 minutes
+        const NOTE_LIFETIME = 10 * 60 * 1000; // 10 minutes
+        const MAX_BUBBLES = 20; // Maximum number of bubbles allowed
 
         const recordButton = document.getElementById('recordButton');
         const voiceWall = document.getElementById('voiceWall');
@@ -608,6 +609,11 @@
                     colorIndex: colorIndex
                 };
 
+                // Check if we need to remove oldest bubble to maintain limit
+                if (voiceNotes.size >= MAX_BUBBLES) {
+                    removeOldestBubble();
+                }
+
                 // Store locally in memory and localStorage
                 voiceNotes.set(noteId, voiceNote);
                 await saveToLocalStorage();
@@ -644,7 +650,7 @@
 
             voiceBubble.innerHTML = `
                 <div class="voice-time">${formatTime(createdAt)}</div>
-                <div class="timer-overlay" id="timer-${note.id}">29:59</div>
+                <div class="timer-overlay" id="timer-${note.id}">09:59</div>
                 <button class="respond-button" onclick="respondToNote('${note.id}')">
                     Reply
                 </button>
@@ -719,56 +725,92 @@
                 }, 800);
             }
             
-            console.log(`Voice note ${noteId} deleted after 30 minutes`);
+            console.log(`Voice note ${noteId} deleted`);
         }
 
-        function playAudio(audioUrl) {
+        function removeOldestBubble() {
+            if (voiceNotes.size === 0) return;
+
+            // Find the oldest note by creation time
+            let oldestNote = null;
+            let oldestTime = Date.now();
+
+            for (const [id, note] of voiceNotes.entries()) {
+                if (note.createdAt.getTime() < oldestTime) {
+                    oldestTime = note.createdAt.getTime();
+                    oldestNote = { id, note };
+                }
+            }
+
+            if (oldestNote) {
+                console.log(`🗑️ Removing oldest bubble ${oldestNote.id} to maintain ${MAX_BUBBLES} bubble limit`);
+                deleteVoiceNote(oldestNote.id);
+            }
+        }
+
+        async function playAudio(audioUrl) {
             if (!audioUrl) {
                 console.error('❌ No audio URL provided');
                 alert('No hay audio para reproducir');
                 return;
             }
 
-            // Stop any currently playing audio
+            // Stop any currently playing audio with delay
             if (currentlyPlayingAudio && !currentlyPlayingAudio.paused) {
                 console.log('⏹️ Stopping previous audio');
                 currentlyPlayingAudio.pause();
                 currentlyPlayingAudio.currentTime = 0;
+                currentlyPlayingAudio = null;
+                
+                // Small delay to prevent "operation was aborted" error
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
 
             console.log('🔊 Attempting to play audio:', audioUrl);
             const audio = new Audio(audioUrl);
-            currentlyPlayingAudio = audio; // Track this audio
             
-            // Add better error handling and logging
+            // Set up all event listeners before setting as current
             audio.addEventListener('loadstart', () => console.log('📋 Audio loading started'));
             audio.addEventListener('canplay', () => console.log('✅ Audio can play'));
             audio.addEventListener('ended', () => {
                 console.log('🏁 Audio playback finished');
-                currentlyPlayingAudio = null;
+                if (currentlyPlayingAudio === audio) {
+                    currentlyPlayingAudio = null;
+                }
             });
             audio.addEventListener('error', (e) => {
                 console.error('❌ Audio error:', e);
-                currentlyPlayingAudio = null;
+                if (currentlyPlayingAudio === audio) {
+                    currentlyPlayingAudio = null;
+                }
                 alert('Error al reproducir audio: ' + (e.message || 'Desconocido'));
             });
             
-            // Ensure audio plays
-            audio.play()
-                .then(() => {
-                    console.log('🎵 Audio playing successfully');
-                })
-                .catch(error => {
-                    console.error('❌ Error playing audio:', error);
+            // Set as current audio only after setup
+            currentlyPlayingAudio = audio;
+            
+            // Try to play with proper error handling
+            try {
+                await audio.play();
+                console.log('🎵 Audio playing successfully');
+            } catch (error) {
+                console.error('❌ Error playing audio:', error);
+                
+                // Clear current audio on error
+                if (currentlyPlayingAudio === audio) {
                     currentlyPlayingAudio = null;
-                    
-                    // Try alternative playback method for desktop
-                    if (error.name === 'NotAllowedError') {
-                        alert('Por favor activa la reproducción automática de audio en tu navegador o haz click en la página primero.');
-                    } else {
-                        alert('Error al reproducir audio: ' + error.message);
-                    }
-                });
+                }
+                
+                // Specific error handling
+                if (error.name === 'NotAllowedError') {
+                    alert('Por favor permite la reproducción de audio y haz click en la página primero.');
+                } else if (error.name === 'AbortError') {
+                    console.log('⚠️ Audio playback was aborted - this is normal when switching between audios');
+                    // Don't show alert for abort errors as they're expected
+                } else {
+                    alert('Error al reproducir audio: ' + error.message);
+                }
+            }
         }
 
         function respondToNote(noteId) {

@@ -115,7 +115,7 @@
 
         const PracticeScreen = ({ practiceData, handlers }) => {
             const { grammarTitle, currentExampleIndex, examplesLength, grammarPattern, userAnswer, availableWords, feedback, slotStatus } = practiceData;
-            const { handleDragStart, handleDragOver, handleDrop, removeFromSlot, resetCurrentExercise, backToInput, checkAnswer, nextExample } = handlers;
+            const { handleDragStart, handleDragOver, handleDrop, removeFromSlot, handleTouchStart, handleTouchMove, handleTouchEnd, resetCurrentExercise, backToInput, checkAnswer, nextExample } = handlers;
             
             const getSlotClass = (index) => {
                 switch(slotStatus[index]) {
@@ -152,6 +152,7 @@
                                 className={`border-2 border-dashed rounded-md p-2 min-w-[90px] h-14 flex items-center justify-center transition-colors duration-300 ${getSlotClass(index)}`}
                                 onDragOver={(e) => handleDragOver(e, index)}
                                 onDrop={(e) => handleDrop(e, index)}
+                                data-slot-index={index}
                             >
                                 {word && (
                                     <div className="bg-blue-500 text-white px-3 py-1 rounded-md flex items-center shadow-md animate-pop-in">
@@ -167,9 +168,13 @@
                         {availableWords.map((word, index) => (
                             <div
                                 key={`${word.text}-${index}`}
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg cursor-move shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all"
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg cursor-move shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all select-none"
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, word, index)}
+                                onTouchStart={(e) => handleTouchStart(e, word, index)}
+                                onTouchMove={(e) => handleTouchMove(e)}
+                                onTouchEnd={(e) => handleTouchEnd(e)}
+                                style={{ touchAction: 'none' }}
                             >
                                 {word.text}
                             </div>
@@ -242,6 +247,12 @@
             const [correctAnswers, setCorrectAnswers] = React.useState(0);
             
             const [draggingItem, setDraggingItem] = React.useState(null);
+            const [touchState, setTouchState] = React.useState({
+                isDragging: false,
+                draggedElement: null,
+                startPosition: { x: 0, y: 0 },
+                currentPosition: { x: 0, y: 0 }
+            });
 
             const handleInputChange = (e) => {
                 const { name, value } = e.target;
@@ -369,6 +380,81 @@
                 setUserAnswer(newAnswer);
             };
 
+            // Touch event handlers for mobile
+            const handleTouchStart = (e, word, fromIndex) => {
+                if (feedback) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                setDraggingItem({ word, fromIndex });
+                setTouchState({
+                    isDragging: true,
+                    draggedElement: e.target,
+                    startPosition: { x: touch.clientX, y: touch.clientY },
+                    currentPosition: { x: touch.clientX, y: touch.clientY }
+                });
+                
+                // Add visual feedback
+                e.target.style.opacity = '0.7';
+                e.target.style.transform = 'scale(1.1)';
+            };
+
+            const handleTouchMove = (e) => {
+                if (!touchState.isDragging) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                setTouchState(prev => ({
+                    ...prev,
+                    currentPosition: { x: touch.clientX, y: touch.clientY }
+                }));
+            };
+
+            const handleTouchEnd = (e) => {
+                if (!touchState.isDragging || !draggingItem) return;
+                e.preventDefault();
+                
+                // Find the element under the finger
+                const touch = e.changedTouches[0];
+                const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                // Reset visual feedback
+                if (touchState.draggedElement) {
+                    touchState.draggedElement.style.opacity = '1';
+                    touchState.draggedElement.style.transform = 'scale(1)';
+                }
+                
+                // Check if dropped on a slot
+                let slotElement = elementBelow;
+                let slotIndex = -1;
+                
+                // Find the slot container
+                while (slotElement && !slotElement.hasAttribute('data-slot-index')) {
+                    slotElement = slotElement.parentElement;
+                }
+                
+                if (slotElement) {
+                    slotIndex = parseInt(slotElement.getAttribute('data-slot-index'));
+                    
+                    // Check if slot is empty
+                    if (slotIndex >= 0 && slotIndex < userAnswer.length && userAnswer[slotIndex] === null) {
+                        const newAnswer = [...userAnswer];
+                        newAnswer[slotIndex] = draggingItem.word;
+                        setUserAnswer(newAnswer);
+
+                        const newAvailable = availableWords.filter((_, index) => index !== draggingItem.fromIndex);
+                        setAvailableWords(newAvailable);
+                    }
+                }
+                
+                // Reset states
+                setTouchState({
+                    isDragging: false,
+                    draggedElement: null,
+                    startPosition: { x: 0, y: 0 },
+                    currentPosition: { x: 0, y: 0 }
+                });
+                setDraggingItem(null);
+            };
+
             const renderContent = () => {
                 switch (appState) {
                     case 'input':
@@ -390,6 +476,7 @@
                         };
                         const handlers = {
                             handleDragStart, handleDragOver, handleDrop, removeFromSlot, 
+                            handleTouchStart, handleTouchMove, handleTouchEnd,
                             resetCurrentExercise, backToInput: () => setAppState('input'),
                             checkAnswer, nextExample
                         };

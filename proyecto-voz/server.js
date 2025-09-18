@@ -18,7 +18,8 @@ const io = socketIo(server, {
 
 const PORT = process.env.PORT || 3000;
 const UPLOAD_DIR = './uploads';
-const NOTE_LIFETIME = 30 * 60 * 1000; // 30 minutes
+const NOTE_LIFETIME = 10 * 60 * 1000; // 10 minutes
+const MAX_BUBBLES = 20; // Maximum number of bubbles allowed
 
 // Create uploads directory if it doesn't exist
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -86,6 +87,11 @@ app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
             colorIndex: colorIndex,
             responses: []
         };
+
+        // Check if we need to remove oldest bubble to maintain limit
+        if (voiceNotes.size >= MAX_BUBBLES) {
+            removeOldestBubble();
+        }
 
         // Store in memory
         voiceNotes.set(noteId, voiceNote);
@@ -218,7 +224,28 @@ function deleteVoiceNote(noteId) {
     // Broadcast deletion to all clients
     io.emit('note-deleted', { noteId });
     
-    console.log(`Voice note ${noteId} deleted after 30 minutes`);
+    console.log(`Voice note ${noteId} deleted`);
+}
+
+// Function to remove oldest bubble when limit is reached
+function removeOldestBubble() {
+    if (voiceNotes.size === 0) return;
+
+    // Find the oldest note by creation time
+    let oldestNote = null;
+    let oldestTime = Date.now();
+
+    for (const [id, note] of voiceNotes.entries()) {
+        if (note.createdAt.getTime() < oldestTime) {
+            oldestTime = note.createdAt.getTime();
+            oldestNote = { id, note };
+        }
+    }
+
+    if (oldestNote) {
+        console.log(`🗑️ Removing oldest bubble ${oldestNote.id} to maintain ${MAX_BUBBLES} bubble limit`);
+        deleteVoiceNote(oldestNote.id);
+    }
 }
 
 // WebSocket connections
