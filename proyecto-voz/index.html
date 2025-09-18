@@ -380,9 +380,101 @@
         const recordButton = document.getElementById('recordButton');
         const voiceWall = document.getElementById('voiceWall');
 
+        // Functions to persist data
+        async function saveToLocalStorage() {
+            const notesArray = [];
+            
+            for (const [id, note] of voiceNotes.entries()) {
+                // Convert audio blob to base64 for storage
+                let audioBase64 = null;
+                if (note.audioBlob) {
+                    audioBase64 = await blobToBase64(note.audioBlob);
+                }
+                
+                notesArray.push({
+                    id,
+                    createdAt: note.createdAt.getTime(),
+                    colorIndex: note.colorIndex,
+                    audioBase64: audioBase64
+                });
+            }
+            
+            localStorage.setItem('voiceNotes', JSON.stringify(notesArray));
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function base64ToBlob(base64) {
+            const [header, data] = base64.split(',');
+            const mimeType = header.match(/:(.*?);/)[1];
+            const binary = atob(data);
+            const bytes = new Uint8Array(binary.length);
+            
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            
+            return new Blob([bytes], { type: mimeType });
+        }
+
+        function loadFromLocalStorage() {
+            const stored = localStorage.getItem('voiceNotes');
+            if (!stored) return;
+
+            try {
+                const notesArray = JSON.parse(stored);
+                const now = Date.now();
+
+                notesArray.forEach(storedNote => {
+                    const elapsed = now - storedNote.createdAt;
+                    
+                    // Only restore notes that haven't expired
+                    if (elapsed < NOTE_LIFETIME) {
+                        // Restore audio from base64
+                        let audioUrl = null;
+                        let audioBlob = null;
+                        
+                        if (storedNote.audioBase64) {
+                            audioBlob = base64ToBlob(storedNote.audioBase64);
+                            audioUrl = URL.createObjectURL(audioBlob);
+                        }
+                        
+                        const note = {
+                            id: storedNote.id,
+                            createdAt: new Date(storedNote.createdAt),
+                            colorIndex: storedNote.colorIndex,
+                            audioUrl: audioUrl,
+                            audioBlob: audioBlob
+                        };
+                        
+                        voiceNotes.set(storedNote.id, note);
+                        
+                        // Create visual bubble with working audio
+                        createVoiceNoteFromData(note);
+                        
+                        // Set remaining cleanup timer
+                        const remaining = NOTE_LIFETIME - elapsed;
+                        setTimeout(() => {
+                            deleteVoiceNote(storedNote.id);
+                        }, remaining);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading notes from localStorage:', error);
+                localStorage.removeItem('voiceNotes');
+            }
+        }
+
         // Initialize social media links (replace with actual URLs)
         document.getElementById('tiktok-link').href = 'https://tiktok.com/@yourusername';
-        document.getElementById('youtube-link').href = 'https://youtube.com/@yourusername';
+        document.getElementById('youtube-link').href = 'http://www.youtube.com/@MemoriadePiedra';
 
         recordButton.addEventListener('click', toggleRecording);
 
@@ -451,7 +543,7 @@
             try {
                 // Create audio URL from blob for local playback
                 const audioUrl = URL.createObjectURL(audioBlob);
-                const noteId = `note-${noteIdCounter++}`;
+                const noteId = `note-${noteIdCounter}`;
                 const createdAt = new Date();
                 const colorIndex = Math.floor(Math.random() * 8) + 1;
 
@@ -463,11 +555,15 @@
                     colorIndex: colorIndex
                 };
 
-                // Store locally
+                // Store locally in memory and localStorage
                 voiceNotes.set(noteId, voiceNote);
+                await saveToLocalStorage();
 
                 // Create visual note
                 createVoiceNoteFromData(voiceNote);
+
+                // Increment counter after creating note
+                noteIdCounter++;
 
                 // Set cleanup timer
                 setTimeout(() => {
@@ -548,7 +644,7 @@
             }, 1000);
         }
 
-        function deleteVoiceNote(noteId) {
+        async function deleteVoiceNote(noteId) {
             const note = voiceNotes.get(noteId);
             if (!note) return;
 
@@ -557,6 +653,9 @@
 
             // Remove from memory
             voiceNotes.delete(noteId);
+            
+            // Update localStorage
+            await saveToLocalStorage();
 
             // Remove from DOM with animation
             const noteElement = document.getElementById(`note-${noteId}`);
@@ -600,6 +699,9 @@
 
         // Initialize app
         window.addEventListener('load', async () => {
+            // Load existing notes from localStorage
+            loadFromLocalStorage();
+            
             // Show canvas on mobile
             if (isMobile()) {
                 document.getElementById('mobileCanvas').style.display = 'block';
