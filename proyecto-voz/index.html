@@ -243,63 +243,34 @@
 
 
 
-        .responses {
-            position: absolute;
-            top: -20px;
-            right: -20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .response-bubble {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            animation: float 4s ease-in-out infinite;
-        }
-
-        .response-bubble:hover {
-            transform: scale(1.2);
-            background: rgba(255, 255, 255, 0.2);
-        }
 
         .respond-button {
             position: absolute;
             bottom: -50px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 6px 12px;
             border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
             font-size: 0.7em;
             transition: all 0.3s ease;
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
             opacity: 0;
         }
 
         .voice-bubble:hover .respond-button {
-            opacity: 0.7;
+            opacity: 0.5;
             transform: translateX(-50%) translateY(-5px);
         }
 
         .respond-button:hover {
-            background: rgba(255, 255, 255, 0.1);
-            opacity: 1;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            opacity: 0.8;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         @keyframes bubble-explosion {
@@ -489,8 +460,7 @@
                     audioUrl: audioUrl,
                     audioBlob: audioBlob,
                     createdAt: createdAt,
-                    colorIndex: colorIndex,
-                    responses: []
+                    colorIndex: colorIndex
                 };
 
                 // Store locally
@@ -529,7 +499,6 @@
                 <button class="respond-button" onclick="respondToNote('${note.id}')">
                     Reply
                 </button>
-                <div class="responses" id="responses-${note.id}"></div>
             `;
 
             // Add click event to play audio when bubble is clicked
@@ -550,13 +519,6 @@
 
             // Start countdown timer
             startNoteTimer(note.id, createdAt);
-
-            // Add existing responses if any
-            if (note.responses && note.responses.length > 0) {
-                note.responses.forEach(response => {
-                    addResponseToNote(note.id, response);
-                });
-            }
         }
 
         function startNoteTimer(noteId, createdAt) {
@@ -592,9 +554,6 @@
 
             // Revoke blob URLs to free memory
             URL.revokeObjectURL(note.audioUrl);
-            note.responses.forEach(response => {
-                URL.revokeObjectURL(response.audioUrl);
-            });
 
             // Remove from memory
             voiceNotes.delete(noteId);
@@ -618,115 +577,12 @@
             });
         }
 
-        let currentlyRespondingTo = null;
-
-        async function respondToNote(noteId) {
-            if (isRecording) {
-                alert('Please finish current recording first');
-                return;
+        function respondToNote(noteId) {
+            // Use Reply button to play the audio instead of recording
+            const note = voiceNotes.get(noteId);
+            if (note && note.audioUrl) {
+                playAudio(note.audioUrl);
             }
-
-            if (currentlyRespondingTo) {
-                alert('Already recording a response');
-                return;
-            }
-
-            currentlyRespondingTo = noteId;
-            
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    await uploadResponse(noteId, audioBlob);
-                    stream.getTracks().forEach(track => track.stop());
-                    currentlyRespondingTo = null;
-                };
-
-                mediaRecorder.start();
-                isRecording = true;
-                recordingStartTime = Date.now();
-
-                // Update UI to show response recording
-                recordButton.classList.add('recording');
-                recordButton.innerHTML = '⏹️';
-
-                // Auto-stop after max time
-                setTimeout(() => {
-                    if (isRecording && currentlyRespondingTo === noteId) {
-                        stopResponseRecording();
-                    }
-                }, MAX_RECORDING_TIME);
-
-                // Start timer display
-                recordingTimer = setInterval(updateRecordingTime, 100);
-
-            } catch (error) {
-                console.error('Error accessing microphone for response:', error);
-                currentlyRespondingTo = null;
-            }
-        }
-
-        function stopResponseRecording() {
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-                isRecording = false;
-
-                recordButton.classList.remove('recording');
-                recordButton.innerHTML = '🎤';
-
-                clearInterval(recordingTimer);
-            }
-        }
-
-        async function uploadResponse(parentNoteId, audioBlob) {
-            try {
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const responseId = `response-${noteIdCounter++}`;
-                
-                const response = {
-                    id: responseId,
-                    audioUrl: audioUrl,
-                    audioBlob: audioBlob,
-                    createdAt: new Date()
-                };
-
-                // Find parent note and add response
-                const parentNote = voiceNotes.get(parentNoteId);
-                if (parentNote) {
-                    parentNote.responses.push(response);
-                    addResponseToNote(parentNoteId, response);
-                }
-
-                console.log('Response uploaded successfully:', responseId);
-
-            } catch (error) {
-                console.error('Error uploading response:', error);
-                alert('Failed to upload response. Please try again.');
-            }
-        }
-
-        function addResponseToNote(parentNoteId, response) {
-            const responsesContainer = document.getElementById(`responses-${parentNoteId}`);
-            if (!responsesContainer) return;
-
-            const responseElement = document.createElement('div');
-            responseElement.className = 'response-bubble';
-            responseElement.innerHTML = '🔊';
-            responseElement.title = `Response from ${formatTime(new Date(response.createdAt))}`;
-            
-            responseElement.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent parent bubble click
-                playAudio(response.audioUrl);
-            });
-
-            responsesContainer.appendChild(responseElement);
         }
 
         function formatTime(date) {
