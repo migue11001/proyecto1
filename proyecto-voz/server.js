@@ -6,7 +6,6 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
-const { connectDB, VoiceNote, startCleanupScheduler } = require('./database');
 
 const app = express();
 const server = http.createServer(app);
@@ -27,19 +26,17 @@ if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-// Database replaces in-memory storage
-// Note: voiceNotes Map and activeTimers are now handled by PostgreSQL
+// In-memory storage for voice notes
+let voiceNotes = new Map();
+let activeTimers = new Map();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Serve static files from parent directory (PACMAN root)
-app.use(express.static(path.join(__dirname, '..')));
-
-// Serve proyecto-voz files
-app.use('/proyecto-voz', express.static(__dirname));
+// Serve static files from current directory for development
+app.use(express.static(__dirname));
 
 // Configure multer for audio file uploads
 const storage = multer.diskStorage({
@@ -68,51 +65,58 @@ const upload = multer({
 
 // Routes
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
-});
-
-app.get('/proyecto-voz', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Upload audio endpoint
-app.post('/api/upload-audio', upload.single('audio'), async (req, res) => {
+app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No audio file provided' });
         }
 
-        // Read audio file and convert to base64
-        const audioBuffer = fs.readFileSync(req.file.path);
-        const audioBase64 = audioBuffer.toString('base64');
-        
-        // Get client IP for analytics (anonymous)
-        const clientIP = req.ip || req.connection.remoteAddress;
-        
-        // Create voice note in database
-        const voiceNote = await VoiceNote.create({
-            audioData: audioBase64,
-            audioFormat: req.file.mimetype,
-            ipAddress: clientIP.substring(0, 10) // Truncate IP for privacy
-        });
+        const noteId = path.parse(req.file.filename).name;
+        const createdAt = new Date();
+        const colorIndex = Math.floor(Math.random() * 8) + 1;
 
-        // Clean up uploaded file (no longer needed)
-        fs.unlinkSync(req.file.path);
+        const voiceNote = {
+            id: noteId,
+            filename: req.file.filename,
+            filePath: req.file.path,
+            createdAt: createdAt,
+            colorIndex: colorIndex,
+            responses: []
+        };
+
+        // Check if we need to remove oldest bubble to maintain limit
+        if (voiceNotes.size >= MAX_BUBBLES) {
+            removeOldestBubble();
+        }
+
+        // Store in memory
+        voiceNotes.set(noteId, voiceNote);
+
+        // Set cleanup timer
+        const timer = setTimeout(() => {
+            deleteVoiceNote(noteId);
+        }, NOTE_LIFETIME);
+        
+        activeTimers.set(noteId, timer);
 
         // Broadcast new note to all connected clients
         io.emit('new-voice-note', {
-            id: voiceNote.id,
-            createdAt: voiceNote.createdAt,
-            colorIndex: voiceNote.colorIndex,
-            audioUrl: `/api/audio/${voiceNote.id}`
+            id: noteId,
+            createdAt: createdAt,
+            colorIndex: colorIndex,
+            audioUrl: `/api/audio/${noteId}`
         });
 
         res.json({
             success: true,
-            noteId: voiceNote.id,
-            audioUrl: `/api/audio/${voiceNote.id}`,
-            createdAt: voiceNote.createdAt,
-            colorIndex: voiceNote.colorIndex
+            noteId: noteId,
+            audioUrl: `/api/audio/${noteId}`,
+            createdAt: createdAt,
+            colorIndex: colorIndex
         });
 
     } catch (error) {
@@ -122,98 +126,142 @@ app.post('/api/upload-audio', upload.single('audio'), async (req, res) => {
 });
 
 // Serve audio files
-app.get('/api/audio/:noteId', async (req, res) => {
-    try {
-        const noteId = req.params.noteId;
-        const note = await VoiceNote.findByPk(noteId);
-        
-        if (!note) {
-            return res.status(404).json({ error: 'Audio not found' });
-        }
-
-        // Check if note has expired
-        if (note.expiresAt < new Date()) {
-            // Clean up expired note
-            await note.destroy();
-            return res.status(404).json({ error: 'Audio expired' });
-        }
-
-        // Convert base64 back to buffer
-        const audioBuffer = Buffer.from(note.audioData, 'base64');
-        
-        // Set appropriate headers
-        res.setHeader('Content-Type', note.audioFormat || 'audio/webm');
-        res.setHeader('Content-Length', audioBuffer.length);
-        res.setHeader('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
-        
-        res.send(audioBuffer);
-        
-    } catch (error) {
-        console.error('Error serving audio:', error);
-        res.status(500).json({ error: 'Error serving audio' });
+app.get('/api/audio/:noteId', (req, res) => {
+    const noteId = req.params.noteId;
+    const note = voiceNotes.get(noteId);
+    
+    if (!note || !fs.existsSync(note.filePath)) {
+        return res.status(404).json({ error: 'Audio not found' });
     }
+
+    res.setHeader('Content-Type', 'audio/wav');
+    res.sendFile(path.resolve(note.filePath));
 });
 
 // Get all current voice notes
-app.get('/api/voice-notes', async (req, res) => {
+app.get('/api/voice-notes', (req, res) => {
+    const notes = Array.from(voiceNotes.values()).map(note => ({
+        id: note.id,
+        createdAt: note.createdAt,
+        colorIndex: note.colorIndex,
+        audioUrl: `/api/audio/${note.id}`,
+        responses: note.responses
+    }));
+    
+    res.json(notes);
+});
+
+// Add response to a voice note
+app.post('/api/voice-notes/:noteId/respond', upload.single('audio'), (req, res) => {
     try {
-        const notes = await VoiceNote.findAll({
-            where: {
-                expiresAt: {
-                    [require('sequelize').Op.gt]: new Date() // Only non-expired notes
-                }
-            },
-            order: [['createdAt', 'DESC']], // Newest first
-            limit: 20 // Enforce limit
+        const noteId = req.params.noteId;
+        const parentNote = voiceNotes.get(noteId);
+        
+        if (!parentNote) {
+            return res.status(404).json({ error: 'Parent note not found' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No audio file provided' });
+        }
+
+        const responseId = path.parse(req.file.filename).name;
+        const response = {
+            id: responseId,
+            filename: req.file.filename,
+            filePath: req.file.path,
+            createdAt: new Date(),
+            audioUrl: `/api/audio/${responseId}`
+        };
+
+        parentNote.responses.push(response);
+
+        // Broadcast new response to all clients
+        io.emit('new-response', {
+            parentNoteId: noteId,
+            response: response
         });
-        
-        const formattedNotes = notes.map(note => ({
-            id: note.id,
-            createdAt: note.createdAt,
-            colorIndex: note.colorIndex,
-            audioUrl: `/api/audio/${note.id}`
-        }));
-        
-        res.json(formattedNotes);
-        
+
+        res.json({
+            success: true,
+            responseId: responseId,
+            audioUrl: response.audioUrl
+        });
+
     } catch (error) {
-        console.error('Error fetching voice notes:', error);
-        res.status(500).json({ error: 'Error fetching voice notes' });
+        console.error('Response upload error:', error);
+        res.status(500).json({ error: 'Response upload failed' });
     }
 });
 
-// Database handles cleanup automatically through scheduled tasks
-// No manual deletion functions needed
+// Function to delete voice note and cleanup
+function deleteVoiceNote(noteId) {
+    const note = voiceNotes.get(noteId);
+    if (!note) return;
+
+    // Delete main audio file
+    if (fs.existsSync(note.filePath)) {
+        fs.unlinkSync(note.filePath);
+    }
+
+    // Delete response audio files
+    note.responses.forEach(response => {
+        if (fs.existsSync(response.filePath)) {
+            fs.unlinkSync(response.filePath);
+        }
+    });
+
+    // Clear timer
+    const timer = activeTimers.get(noteId);
+    if (timer) {
+        clearTimeout(timer);
+        activeTimers.delete(noteId);
+    }
+
+    // Remove from memory
+    voiceNotes.delete(noteId);
+
+    // Broadcast deletion to all clients
+    io.emit('note-deleted', { noteId });
+    
+    console.log(`Voice note ${noteId} deleted`);
+}
+
+// Function to remove oldest bubble when limit is reached
+function removeOldestBubble() {
+    if (voiceNotes.size === 0) return;
+
+    // Find the oldest note by creation time
+    let oldestNote = null;
+    let oldestTime = Date.now();
+
+    for (const [id, note] of voiceNotes.entries()) {
+        if (note.createdAt.getTime() < oldestTime) {
+            oldestTime = note.createdAt.getTime();
+            oldestNote = { id, note };
+        }
+    }
+
+    if (oldestNote) {
+        console.log(`🗑️ Removing oldest bubble ${oldestNote.id} to maintain ${MAX_BUBBLES} bubble limit`);
+        deleteVoiceNote(oldestNote.id);
+    }
+}
 
 // WebSocket connections
-io.on('connection', async (socket) => {
+io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    try {
-        // Send current voice notes to new client
-        const currentNotes = await VoiceNote.findAll({
-            where: {
-                expiresAt: {
-                    [require('sequelize').Op.gt]: new Date()
-                }
-            },
-            order: [['createdAt', 'DESC']],
-            limit: 20
-        });
-        
-        const formattedNotes = currentNotes.map(note => ({
-            id: note.id,
-            createdAt: note.createdAt,
-            colorIndex: note.colorIndex,
-            audioUrl: `/api/audio/${note.id}`
-        }));
-        
-        socket.emit('current-notes', formattedNotes);
-        
-    } catch (error) {
-        console.error('Error sending current notes to new client:', error);
-        socket.emit('current-notes', []);
-    }
+    // Send current voice notes to new client
+    const currentNotes = Array.from(voiceNotes.values()).map(note => ({
+        id: note.id,
+        createdAt: note.createdAt,
+        colorIndex: note.colorIndex,
+        audioUrl: `/api/audio/${note.id}`,
+        responses: note.responses
+    }));
+    
+    socket.emit('current-notes', currentNotes);
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
@@ -224,38 +272,28 @@ io.on('connection', async (socket) => {
 process.on('SIGTERM', () => {
     console.log('Server shutting down, cleaning up...');
     
+    // Clear all timers
+    activeTimers.forEach(timer => clearTimeout(timer));
+    
+    // Delete all audio files
+    voiceNotes.forEach(note => {
+        if (fs.existsSync(note.filePath)) {
+            fs.unlinkSync(note.filePath);
+        }
+        note.responses.forEach(response => {
+            if (fs.existsSync(response.filePath)) {
+                fs.unlinkSync(response.filePath);
+            }
+        });
+    });
+    
     server.close(() => {
         console.log('Server closed');
         process.exit(0);
     });
 });
 
-// Initialize database and start server
-const startServer = async () => {
-    try {
-        // Connect to database
-        const dbConnected = await connectDB();
-        
-        if (!dbConnected) {
-            console.error('❌ Failed to connect to database. Exiting...');
-            process.exit(1);
-        }
-        
-        // Start cleanup scheduler
-        startCleanupScheduler();
-        
-        // Start HTTP server
-        server.listen(PORT, () => {
-            console.log(`🎤 Voice Mural server running on port ${PORT}`);
-            console.log(`📡 WebSocket server ready for real-time communication`);
-            console.log(`🗄️ PostgreSQL database connected and ready`);
-        });
-        
-    } catch (error) {
-        console.error('❌ Failed to start server:', error);
-        process.exit(1);
-    }
-};
-
-// Start the server
-startServer();
+server.listen(PORT, () => {
+    console.log(`🎤 Voice Mural server running on port ${PORT}`);
+    console.log(`📡 WebSocket server ready for real-time communication`);
+});

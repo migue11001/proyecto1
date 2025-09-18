@@ -366,7 +366,6 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         let mediaRecorder;
         let audioChunks = [];
@@ -374,7 +373,7 @@
         let recordingStartTime;
         let recordingTimer;
         let voiceNotes = new Map();
-        let socket;
+        let noteIdCounter = 1;
         let currentlyPlayingAudio = null; // Track currently playing audio
         const MAX_RECORDING_TIME = 30000; // 30 seconds
         const NOTE_LIFETIME = 10 * 60 * 1000; // 10 minutes
@@ -383,27 +382,96 @@
         const recordButton = document.getElementById('recordButton');
         const voiceWall = document.getElementById('voiceWall');
 
-        // WebSocket connection for real-time updates
-        function initializeSocket() {
-            socket = io();
+        // Functions to persist data
+        async function saveToLocalStorage() {
+            const notesArray = [];
             
-            socket.on('connect', () => {
-                console.log('Connected to server');
-            });
-            
-            socket.on('current-notes', (notes) => {
-                notes.forEach(note => {
-                    createVoiceNoteFromServer(note);
+            for (const [id, note] of voiceNotes.entries()) {
+                // Convert audio blob to base64 for storage
+                let audioBase64 = null;
+                if (note.audioBlob) {
+                    audioBase64 = await blobToBase64(note.audioBlob);
+                }
+                
+                notesArray.push({
+                    id,
+                    createdAt: note.createdAt.getTime(),
+                    colorIndex: note.colorIndex,
+                    audioBase64: audioBase64
                 });
-            });
+            }
             
-            socket.on('new-voice-note', (note) => {
-                createVoiceNoteFromServer(note);
+            localStorage.setItem('voiceNotes', JSON.stringify(notesArray));
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
             });
+        }
+
+        function base64ToBlob(base64) {
+            const [header, data] = base64.split(',');
+            const mimeType = header.match(/:(.*?);/)[1];
+            const binary = atob(data);
+            const bytes = new Uint8Array(binary.length);
             
-            socket.on('disconnect', () => {
-                console.log('Disconnected from server');
-            });
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            
+            return new Blob([bytes], { type: mimeType });
+        }
+
+        function loadFromLocalStorage() {
+            const stored = localStorage.getItem('voiceNotes');
+            if (!stored) return;
+
+            try {
+                const notesArray = JSON.parse(stored);
+                const now = Date.now();
+
+                notesArray.forEach(storedNote => {
+                    const elapsed = now - storedNote.createdAt;
+                    
+                    // Only restore notes that haven't expired
+                    if (elapsed < NOTE_LIFETIME) {
+                        // Restore audio from base64
+                        let audioUrl = null;
+                        let audioBlob = null;
+                        
+                        if (storedNote.audioBase64) {
+                            audioBlob = base64ToBlob(storedNote.audioBase64);
+                            audioUrl = URL.createObjectURL(audioBlob);
+                        }
+                        
+                        const note = {
+                            id: storedNote.id,
+                            createdAt: new Date(storedNote.createdAt),
+                            colorIndex: storedNote.colorIndex,
+                            audioUrl: audioUrl,
+                            audioBlob: audioBlob
+                        };
+                        
+                        voiceNotes.set(storedNote.id, note);
+                        
+                        // Create visual bubble with working audio
+                        createVoiceNoteFromData(note);
+                        
+                        // Set remaining cleanup timer
+                        const remaining = NOTE_LIFETIME - elapsed;
+                        setTimeout(() => {
+                            deleteVoiceNote(storedNote.id);
+                        }, remaining);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading notes from localStorage:', error);
+                localStorage.removeItem('voiceNotes');
+            }
         }
 
         // Initialize social media links (replace with actual URLs)
@@ -527,40 +595,55 @@
 
         async function createVoiceNote(audioBlob) {
             try {
-                // Upload audio to server
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'voice-note.wav');
+                // Create audio URL from blob for local playback
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const noteId = `note-${noteIdCounter}`;
+                const createdAt = new Date();
+                const colorIndex = Math.floor(Math.random() * 8) + 1;
 
-                const response = await fetch('/api/upload-audio', {
-                    method: 'POST',
-                    body: formData
-                });
+                const voiceNote = {
+                    id: noteId,
+                    audioUrl: audioUrl,
+                    audioBlob: audioBlob,
+                    createdAt: createdAt,
+                    colorIndex: colorIndex
+                };
 
-                if (!response.ok) {
-                    throw new Error('Upload failed');
+                // Check if we need to remove oldest bubble to maintain limit
+                if (voiceNotes.size >= MAX_BUBBLES) {
+                    removeOldestBubble();
                 }
 
-                const result = await response.json();
-                console.log('Audio uploaded successfully:', result);
+                // Store locally in memory and localStorage
+                voiceNotes.set(noteId, voiceNote);
+                await saveToLocalStorage();
 
-                // Note will appear via WebSocket 'new-voice-note' event
+                // Create visual note
+                createVoiceNoteFromData(voiceNote);
+
+                // Increment counter after creating note
+                noteIdCounter++;
+
+                // Set cleanup timer
+                setTimeout(() => {
+                    deleteVoiceNote(noteId);
+                }, NOTE_LIFETIME);
+
+                console.log('Voice note created successfully:', noteId);
 
             } catch (error) {
-                console.error('Error uploading audio:', error);
-                alert('Failed to upload voice note. Please try again.');
+                console.error('Error creating voice note:', error);
+                alert('Failed to create voice note. Please try again.');
             }
         }
 
-        function createVoiceNoteFromServer(note) {
+        function createVoiceNoteFromData(note) {
             // Don't create if already exists
             if (document.getElementById(`note-${note.id}`)) {
                 return;
             }
 
-            // Store note data locally for reference
-            voiceNotes.set(note.id, note);
-
-            const createdAt = new Date(note.createdAt);
+            const createdAt = note.createdAt;
             const voiceBubble = document.createElement('div');
             voiceBubble.className = `voice-bubble bubble-color-${note.colorIndex}`;
             voiceBubble.id = `note-${note.id}`;
@@ -589,7 +672,7 @@
                 voiceBubble.style.opacity = '1';
             }, 100);
 
-            // Start countdown timer (server handles expiration, this is just visual)
+            // Start countdown timer
             startNoteTimer(note.id, createdAt);
         }
 
@@ -753,8 +836,8 @@
 
         // Initialize app
         window.addEventListener('load', async () => {
-            // Initialize WebSocket connection
-            initializeSocket();
+            // Load existing notes from localStorage
+            loadFromLocalStorage();
             
             // Show canvas on mobile
             if (isMobile()) {

@@ -15,9 +15,7 @@
     "socket.io": "^4.7.2",
     "multer": "^1.4.5-lts.1",
     "cors": "^2.8.5",
-    "uuid": "^9.0.0",
-    "pg": "^8.11.3",
-    "sequelize": "^6.35.0"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
