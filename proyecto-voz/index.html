@@ -374,6 +374,7 @@
         let recordingTimer;
         let voiceNotes = new Map();
         let noteIdCounter = 1;
+        let currentlyPlayingAudio = null; // Track currently playing audio
         const MAX_RECORDING_TIME = 30000; // 30 seconds
         const NOTE_LIFETIME = 30 * 60 * 1000; // 30 minutes
 
@@ -488,38 +489,90 @@
 
         async function startRecording() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                // More specific audio constraints for better desktop compatibility
+                const constraints = {
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        sampleRate: 44100
+                    }
+                };
+
+                console.log('🎤 Requesting microphone access...');
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log('✅ Microphone access granted');
+
+                // Check if MediaRecorder is supported
+                if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                    console.log('audio/webm not supported, trying audio/mp4');
+                    if (!MediaRecorder.isTypeSupported('audio/mp4')) {
+                        console.log('audio/mp4 not supported, using default');
+                    }
+                }
+
+                // Use the best supported format
+                const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 
+                                MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 
+                                'audio/wav';
+
+                mediaRecorder = new MediaRecorder(stream, { mimeType });
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
+                    if (event.data.size > 0) {
+                        console.log('📊 Audio data received:', event.data.size, 'bytes');
+                        audioChunks.push(event.data);
+                    }
                 };
 
                 mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    console.log('🛑 Recording stopped, creating blob...');
+                    const audioBlob = new Blob(audioChunks, { type: mimeType });
+                    console.log('📦 Audio blob created:', audioBlob.size, 'bytes');
+                    
                     createVoiceNote(audioBlob);
                     stream.getTracks().forEach(track => track.stop());
                 };
 
-                mediaRecorder.start();
+                mediaRecorder.onerror = (event) => {
+                    console.error('❌ MediaRecorder error:', event.error);
+                };
+
+                mediaRecorder.start(1000); // Collect data every second for better compatibility
                 isRecording = true;
                 recordingStartTime = Date.now();
 
                 recordButton.classList.add('recording');
                 recordButton.innerHTML = '⏹️';
+                console.log('🔴 Recording started...');
+                
                 // Start timer display
                 recordingTimer = setInterval(updateRecordingTime, 100);
 
                 // Auto-stop after max time
                 setTimeout(() => {
                     if (isRecording) {
+                        console.log('⏰ Auto-stopping recording after max time');
                         stopRecording();
                     }
                 }, MAX_RECORDING_TIME);
 
             } catch (error) {
-                console.error('Error accessing microphone:', error);
+                console.error('❌ Error accessing microphone:', error);
+                let errorMessage = 'No se pudo acceder al micrófono. ';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage += 'Por favor permite el acceso al micrófono y recarga la página.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage += 'No se encontró micrófono conectado.';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMessage += 'Tu navegador no soporta grabación de audio.';
+                } else {
+                    errorMessage += 'Error: ' + error.message;
+                }
+                
+                alert(errorMessage);
             }
         }
 
@@ -670,10 +723,52 @@
         }
 
         function playAudio(audioUrl) {
+            if (!audioUrl) {
+                console.error('❌ No audio URL provided');
+                alert('No hay audio para reproducir');
+                return;
+            }
+
+            // Stop any currently playing audio
+            if (currentlyPlayingAudio && !currentlyPlayingAudio.paused) {
+                console.log('⏹️ Stopping previous audio');
+                currentlyPlayingAudio.pause();
+                currentlyPlayingAudio.currentTime = 0;
+            }
+
+            console.log('🔊 Attempting to play audio:', audioUrl);
             const audio = new Audio(audioUrl);
-            audio.play().catch(error => {
-                console.error('Error playing audio:', error);
+            currentlyPlayingAudio = audio; // Track this audio
+            
+            // Add better error handling and logging
+            audio.addEventListener('loadstart', () => console.log('📋 Audio loading started'));
+            audio.addEventListener('canplay', () => console.log('✅ Audio can play'));
+            audio.addEventListener('ended', () => {
+                console.log('🏁 Audio playback finished');
+                currentlyPlayingAudio = null;
             });
+            audio.addEventListener('error', (e) => {
+                console.error('❌ Audio error:', e);
+                currentlyPlayingAudio = null;
+                alert('Error al reproducir audio: ' + (e.message || 'Desconocido'));
+            });
+            
+            // Ensure audio plays
+            audio.play()
+                .then(() => {
+                    console.log('🎵 Audio playing successfully');
+                })
+                .catch(error => {
+                    console.error('❌ Error playing audio:', error);
+                    currentlyPlayingAudio = null;
+                    
+                    // Try alternative playback method for desktop
+                    if (error.name === 'NotAllowedError') {
+                        alert('Por favor activa la reproducción automática de audio en tu navegador o haz click en la página primero.');
+                    } else {
+                        alert('Error al reproducir audio: ' + error.message);
+                    }
+                });
         }
 
         function respondToNote(noteId) {
@@ -708,15 +803,25 @@
                 setupMobileCanvas();
             }
 
+            // Check microphone permissions
             try {
                 const permission = await navigator.permissions.query({ name: 'microphone' });
+                console.log('🎤 Microphone permission state:', permission.state);
                 if (permission.state === 'denied') {
-                    console.log('Microphone access denied');
+                    console.log('❌ Microphone access denied');
                 }
             } catch (error) {
-                console.log('Permission API not supported');
+                console.log('⚠️ Permission API not supported');
             }
+
+            // Add click handler to enable audio context for desktop browsers
+            document.addEventListener('click', enableAudioContext, { once: true });
         });
+
+        function enableAudioContext() {
+            console.log('👆 User interaction detected - audio context enabled');
+            // This helps with desktop audio playback restrictions
+        }
 
         function setupMobileCanvas() {
             const canvas = document.getElementById('mobileCanvas');
