@@ -35,8 +35,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Serve static files from current directory for development
-app.use(express.static(__dirname));
+// Serve static files from parent directory (PACMAN root)
+app.use(express.static(path.join(__dirname, '..')));
+
+// Serve proyecto-voz files
+app.use('/proyecto-voz', express.static(__dirname));
 
 // Configure multer for audio file uploads
 const storage = multer.diskStorage({
@@ -65,6 +68,10 @@ const upload = multer({
 
 // Routes
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
+
+app.get('/proyecto-voz', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
