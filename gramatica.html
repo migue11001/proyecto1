@@ -192,10 +192,10 @@
         // --- COMPONENTES HIJOS (UI) ---
         const InputScreen = ({ grammarTitle, examplesText, onInputChange, processExamples }) => (
           <div className="glass-card p-6 animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4" style={{color: '#FFD700'}}>Crear un nuevo ejercicio</h2>
+            <h2 className="text-2xl font-bold mb-4" style={{color: '#FFD700'}}>Titulo</h2>
             <div className="space-y-4">
                 <div>
-                    <label htmlFor="grammarTitle" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Título de la estructura gramatical:</label>
+                    <label htmlFor="grammarTitle" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}></label>
                     <input id="grammarTitle" name="grammarTitle" type="text" value={grammarTitle} onChange={onInputChange} className="w-full rounded-md p-3" style={{
                         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%)',
                         backdropFilter: 'blur(15px) saturate(120%)',
@@ -206,7 +206,7 @@
                     }} placeholder="Ej: Presente Simple con adverbios"/>
                 </div>
                 <div>
-                    <label htmlFor="examplesText" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Ejemplos (uno por línea):</label>
+                    <label htmlFor="examplesText" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Insertar frases:</label>
                     <textarea id="examplesText" name="examplesText" value={examplesText} onChange={onInputChange} className="w-full rounded-md p-3 h-80" style={{
                         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%)',
                         backdropFilter: 'blur(15px) saturate(120%)',
@@ -223,7 +223,7 @@
                     border: 'none', 
                     cursor: 'pointer'
                 }}>
-                    Comenzar Práctica
+                    Inicio
                 </button>
             </div>
           </div>
@@ -277,7 +277,7 @@
                     </div>
                     
 
-                    <h3 className="font-semibold" style={{color: '#E0E0E0'}}>Ordena las palabras para formar la oración correcta:</h3>
+                    <h3 className="font-semibold" style={{color: '#E0E0E0'}}>Reconstruir la frase::</h3>
                     
                     <div className="flex flex-wrap gap-3 min-h-[60px] p-2 rounded-lg border" style={{
                         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%)',
@@ -665,8 +665,8 @@
                 <div className="min-h-screen p-4 sm:p-6 md:p-8">
                     <div className="max-w-4xl mx-auto">
                         <header className="glass-header text-white p-6 shadow-lg mb-6">
-                            <h1 className="text-3xl font-bold" style={{color: '#FFD700', textShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'}}>Sistema de Práctica Gramatical</h1>
-                            <p className="mt-2 opacity-90" style={{color: '#E0E0E0'}}>Crea ejercicios para practicar el orden de las palabras en cualquier idioma.</p>
+                            <h1 className="text-3xl font-bold" style={{color: '#FFD700', textShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'}}>Gramatica</h1>
+                            <p className="mt-2 opacity-90" style={{color: '#E0E0E0'}}> </p>
                         </header>
                         <main>
                             {renderContent()}
