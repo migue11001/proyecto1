@@ -23,9 +23,86 @@
         /* Estilos y animaciones personalizadas */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-image: url('2html.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
             color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 0;
+        }
+        
+        #root {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Efecto de hojas cayendo */
+        .falling-leaves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .leaf {
+            position: absolute;
+            opacity: 0.2;
+            font-size: 1.5em;
+            animation: fall linear infinite;
+        }
+        
+        .leaf:nth-child(odd) {
+            color: #DC143C;
+            animation-duration: 8s;
+        }
+        
+        .leaf:nth-child(even) {
+            color: #FF8C00;
+            animation-duration: 12s;
+        }
+        
+        .leaf:nth-child(3n) {
+            color: #FFA500;
+            animation-duration: 10s;
+        }
+        
+        .leaf:nth-child(4n) {
+            color: #B22222;
+            animation-duration: 15s;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 0.3;
+            }
+            10% {
+                opacity: 0.2;
+            }
+            90% {
+                opacity: 0.1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -56,24 +133,43 @@
             animation: pulseOnce 0.6s ease-in-out;
         }
 
-        /* Glass morphism styles */
+        /* Glass morphism styles - Autumn theme */
         .glass-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(220, 20, 60, 0.15) 0%, 
+                rgba(255, 140, 0, 0.12) 30%,
+                rgba(255, 165, 0, 0.15) 60%,
+                rgba(178, 34, 34, 0.12) 100%);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px) saturate(120%);
+            box-shadow: 
+                0 15px 50px rgba(220, 20, 60, 0.2),
+                0 10px 30px rgba(255, 140, 0, 0.15);
+            border: 2px solid rgba(255, 140, 0, 0.3);
+            position: relative;
+            z-index: 2;
         }
 
         .glass-header {
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(220, 20, 60, 0.12) 0%, 
+                rgba(255, 140, 0, 0.10) 30%,
+                rgba(255, 165, 0, 0.12) 60%,
+                rgba(178, 34, 34, 0.10) 100%);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(15px) saturate(120%);
+            box-shadow: 
+                0 12px 40px rgba(220, 20, 60, 0.15),
+                0 8px 25px rgba(255, 140, 0, 0.12);
+            border: 2px solid rgba(255, 140, 0, 0.25);
+            position: relative;
+            z-index: 2;
         }
     </style>
 </head>
 <body>
+    <!-- Efecto de hojas cayendo -->
+    <div class="falling-leaves" id="falling-leaves"></div>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -87,26 +183,39 @@
         };
 
         // --- COMPONENTES HIJOS (UI) ---
-        const InputScreen = ({ grammarTitle, examplesText, customGrammarPattern, onInputChange, processExamples }) => (
+        const InputScreen = ({ grammarTitle, examplesText, onInputChange, processExamples }) => (
           <div className="glass-card p-6 animate-fade-in">
             <h2 className="text-2xl font-bold mb-4" style={{color: '#FFD700'}}>Crear un nuevo ejercicio</h2>
             <div className="space-y-4">
                 <div>
                     <label htmlFor="grammarTitle" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Título de la estructura gramatical:</label>
-                    <input id="grammarTitle" name="grammarTitle" type="text" value={grammarTitle} onChange={onInputChange} className="w-full border-none rounded-md p-3" style={{background: 'rgba(255, 255, 255, 0.9)', color: '#333', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'}} placeholder="Ej: Presente Simple con adverbios"/>
+                    <input id="grammarTitle" name="grammarTitle" type="text" value={grammarTitle} onChange={onInputChange} className="w-full rounded-md p-3" style={{
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%)',
+                        backdropFilter: 'blur(15px) saturate(120%)',
+                        border: '2px solid rgba(255, 140, 0, 0.4)',
+                        color: 'white',
+                        boxShadow: '0 8px 25px rgba(220, 20, 60, 0.15), 0 4px 15px rgba(255, 140, 0, 0.12)',
+                        transition: 'all 0.3s ease'
+                    }} placeholder="Ej: Presente Simple con adverbios"/>
                 </div>
                 <div>
                     <label htmlFor="examplesText" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Ejemplos (uno por línea):</label>
-                    <textarea id="examplesText" name="examplesText" value={examplesText} onChange={onInputChange} className="w-full border-none rounded-md p-3 h-40" style={{background: 'rgba(255, 255, 255, 0.9)', color: '#333', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'}} placeholder="Ej:&#10;She always drinks coffee.&#10;I never eat meat.&#10;They sometimes play tennis."/>
-                </div>
-                <div>
-                    <label htmlFor="customGrammarPattern" className="block font-semibold mb-2" style={{color: '#E0E0E0'}}>Patrón gramatical personalizado (opcional):</label>
-                    <input id="customGrammarPattern" name="customGrammarPattern" type="text" value={customGrammarPattern} onChange={onInputChange} className="w-full border-none rounded-md p-3" style={{background: 'rgba(255, 255, 255, 0.9)', color: '#333', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'}} placeholder="Ej: [20, 50, 2, 10]"/>
-                    <p className="text-sm mt-1" style={{color: '#B0B0B0'}}>Formato: Array JSON de códigos. Si se deja vacío, se usará el del primer ejemplo.</p>
+                    <textarea id="examplesText" name="examplesText" value={examplesText} onChange={onInputChange} className="w-full rounded-md p-3 h-80" style={{
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%)',
+                        backdropFilter: 'blur(15px) saturate(120%)',
+                        border: '2px solid rgba(255, 140, 0, 0.4)',
+                        color: 'white',
+                        boxShadow: '0 8px 25px rgba(220, 20, 60, 0.15), 0 4px 15px rgba(255, 140, 0, 0.12)',
+                        transition: 'all 0.3s ease'
+                    }} placeholder="Ej:&#10;She always drinks coffee.&#10;I never eat meat.&#10;They sometimes play tennis."/>
                 </div>
             </div>
-            <div className="flex justify-end mt-6">
-                <button onClick={processExamples} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300" style={{background: 'linear-gradient(45deg, #4ECDC4, #44A08D)', border: 'none', cursor: 'pointer'}}>
+            <div className="flex justify-start mt-6">
+                <button onClick={processExamples} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300" style={{
+                    background: 'linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 140, 0, 0.9), rgba(255, 165, 0, 0.9))', 
+                    border: 'none', 
+                    cursor: 'pointer'
+                }}>
                     Comenzar Práctica
                 </button>
             </div>
@@ -119,9 +228,37 @@
             
             const getSlotClass = (index) => {
                 switch(slotStatus[index]) {
-                    case 'correct': return 'bg-green-100 border-green-400';
-                    case 'incorrect': return 'bg-red-100 border-red-400';
-                    default: return 'bg-blue-50 border-blue-300';
+                    case 'correct': return '';
+                    case 'incorrect': return '';
+                    default: return '';
+                }
+            };
+
+            const getSlotStyle = (index) => {
+                const baseStyle = {
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    border: '2px dashed rgba(255, 140, 0, 0.3)',
+                    transition: 'all 0.3s ease'
+                };
+                
+                switch(slotStatus[index]) {
+                    case 'correct': 
+                        return {
+                            ...baseStyle,
+                            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.1) 100%)',
+                            border: '2px dashed rgba(34, 197, 94, 0.4)',
+                            boxShadow: '0 4px 15px rgba(34, 197, 94, 0.2)'
+                        };
+                    case 'incorrect': 
+                        return {
+                            ...baseStyle,
+                            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%)',
+                            border: '2px dashed rgba(239, 68, 68, 0.4)',
+                            boxShadow: '0 4px 15px rgba(239, 68, 68, 0.2)'
+                        };
+                    default: 
+                        return baseStyle;
                 }
             };
 
@@ -132,43 +269,66 @@
                         <div className="font-semibold" style={{color: '#E0E0E0'}}>Ejemplo {currentExampleIndex + 1} de {examplesLength}</div>
                     </div>
                     
-                    <div>
-                        <h3 className="font-semibold mb-2" style={{color: '#E0E0E0'}}>Estructura gramatical:</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {grammarPattern.map((code, index) => (
-                                <span key={index} className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-1 rounded-full">
-                                    {grammarCodes[code] || `Código ${code}`}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
 
                     <h3 className="font-semibold" style={{color: '#E0E0E0'}}>Ordena las palabras para formar la oración correcta:</h3>
                     
-                    <div className="flex flex-wrap gap-3 min-h-[60px] p-2 bg-gray-50 rounded-lg border">
+                    <div className="flex flex-wrap gap-3 min-h-[60px] p-2 rounded-lg border" style={{
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%)',
+                        backdropFilter: 'blur(15px) saturate(120%)',
+                        border: '2px solid rgba(255, 140, 0, 0.4)',
+                        boxShadow: '0 8px 25px rgba(220, 20, 60, 0.15), 0 4px 15px rgba(255, 140, 0, 0.12)'
+                    }}>
                         {userAnswer.map((word, index) => (
                             <div
                                 key={index}
-                                className={`border-2 border-dashed rounded-md p-2 min-w-[90px] h-14 flex items-center justify-center transition-colors duration-300 ${getSlotClass(index)}`}
+                                className="rounded-md p-2 min-w-[90px] h-14 flex items-center justify-center"
+                                style={getSlotStyle(index)}
                                 onDragOver={(e) => handleDragOver(e, index)}
                                 onDrop={(e) => handleDrop(e, index)}
                                 data-slot-index={index}
                             >
                                 {word && (
-                                    <div className="bg-blue-500 text-white px-3 py-1 rounded-md flex items-center shadow-md animate-pop-in">
+                                    <div className="px-3 py-1 rounded-md flex items-center shadow-md animate-pop-in" style={{
+                                        background: 'linear-gradient(135deg, #a7f3d0 0%, #86efac 50%, #6ee7b7 100%)',
+                                        color: '#065f46',
+                                        boxShadow: '0 4px 15px rgba(167, 243, 208, 0.3)'
+                                    }}>
                                         <span>{word.text}</span>
-                                        <button onClick={() => removeFromSlot(index)} className="ml-2 text-blue-100 hover:text-white font-bold text-lg">×</button>
+                                        <button onClick={() => removeFromSlot(index)} className="ml-2 hover:text-red-600 font-bold text-lg" style={{
+                                            color: '#047857',
+                                            transition: 'color 0.2s ease'
+                                        }}>×</button>
                                     </div>
                                 )}
                             </div>
                         ))}
                     </div>
                     
-                    <div className="flex flex-wrap gap-2 min-h-[50px] p-3 bg-gray-100 rounded-lg">
+                    <div className="flex flex-wrap gap-2 min-h-[50px] p-3 rounded-lg" style={{
+                        background: 'linear-gradient(135deg, rgba(167, 243, 208, 0.15) 0%, rgba(134, 239, 172, 0.12) 50%, rgba(110, 231, 183, 0.15) 100%)',
+                        backdropFilter: 'blur(15px) saturate(120%)',
+                        border: '2px solid rgba(167, 243, 208, 0.4)',
+                        boxShadow: '0 8px 25px rgba(167, 243, 208, 0.2), 0 4px 15px rgba(134, 239, 172, 0.15)'
+                    }}>
                         {availableWords.map((word, index) => (
                             <div
                                 key={`${word.text}-${index}`}
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg cursor-move shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all select-none"
+                                className="px-4 py-2 rounded-lg cursor-move shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all select-none"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.15) 100%)',
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(255, 140, 0, 0.3)',
+                                    color: 'white',
+                                    boxShadow: '0 4px 15px rgba(220, 20, 60, 0.1)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.25) 100%)';
+                                    e.target.style.boxShadow = '0 6px 20px rgba(255, 140, 0, 0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.15) 100%)';
+                                    e.target.style.boxShadow = '0 4px 15px rgba(220, 20, 60, 0.1)';
+                                }}
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, word, index)}
                                 onTouchStart={(e) => handleTouchStart(e, word, index)}
@@ -182,21 +342,37 @@
                     </div>
 
                     {feedback && (
-                        <div className={`p-4 rounded-md text-center font-semibold animate-fade-in ${feedback.correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <div className="p-4 rounded-md text-center font-semibold animate-fade-in" style={
+                            feedback.correct ? {
+                                background: 'linear-gradient(135deg, rgba(167, 243, 208, 0.2) 0%, rgba(134, 239, 172, 0.15) 50%, rgba(110, 231, 183, 0.2) 100%)',
+                                backdropFilter: 'blur(15px) saturate(120%)',
+                                border: '2px solid rgba(167, 243, 208, 0.5)',
+                                boxShadow: '0 8px 25px rgba(167, 243, 208, 0.25), 0 4px 15px rgba(134, 239, 172, 0.2)',
+                                color: '#ffffff',
+                                textShadow: '0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4)'
+                            } : {
+                                background: 'linear-gradient(135deg, rgba(248, 113, 113, 0.2) 0%, rgba(239, 68, 68, 0.15) 50%, rgba(220, 38, 38, 0.2) 100%)',
+                                backdropFilter: 'blur(15px) saturate(120%)',
+                                border: '2px solid rgba(248, 113, 113, 0.5)',
+                                boxShadow: '0 8px 25px rgba(248, 113, 113, 0.25), 0 4px 15px rgba(239, 68, 68, 0.2)',
+                                color: '#ffffff',
+                                textShadow: '0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4)'
+                            }
+                        }>
                             {feedback.message}
                         </div>
                     )}
 
                     <div className="flex justify-between items-center pt-4 border-t">
                         <div>
-                            <button onClick={resetCurrentExercise} className="text-white font-bold py-2 px-4 rounded-full mr-2 transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #667eea, #764ba2)', border: 'none', cursor: 'pointer'}}>Reiniciar</button>
-                            <button onClick={backToInput} className="text-white font-bold py-2 px-4 rounded-full transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #667eea, #764ba2)', border: 'none', cursor: 'pointer'}}>Volver</button>
+                            <button onClick={resetCurrentExercise} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 mr-2" style={{background: 'linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 140, 0, 0.9), rgba(255, 165, 0, 0.9))', border: 'none', cursor: 'pointer'}}>Reiniciar</button>
+                            <button onClick={backToInput} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300" style={{background: 'linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 140, 0, 0.9), rgba(255, 165, 0, 0.9))', border: 'none', cursor: 'pointer'}}>Volver</button>
                         </div>
                         <div>
                             {feedback && feedback.correct ? (
-                                <button onClick={nextExample} className="text-white font-bold py-2 px-6 rounded-full shadow-md animate-pulse-once transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #4ECDC4, #44A08D)', border: 'none', cursor: 'pointer'}}>Siguiente →</button>
+                                <button onClick={nextExample} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 animate-pulse-once" style={{background: 'linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 140, 0, 0.9), rgba(255, 165, 0, 0.9))', border: 'none', cursor: 'pointer'}}>Siguiente →</button>
                             ) : (
-                                <button onClick={checkAnswer} disabled={feedback !== null} className="text-white font-bold py-2 px-6 rounded-full transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" style={{background: feedback !== null ? '#888' : 'linear-gradient(45deg, #FF6B6B, #FF8E53)', border: 'none', cursor: feedback !== null ? 'not-allowed' : 'pointer'}}>Verificar</button>
+                                <button onClick={checkAnswer} disabled={feedback !== null} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" style={{background: feedback !== null ? '#888' : 'linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 140, 0, 0.9), rgba(255, 165, 0, 0.9))', border: 'none', cursor: feedback !== null ? 'not-allowed' : 'pointer'}}>Verificar</button>
                             )}
                         </div>
                     </div>
@@ -219,8 +395,8 @@
                         <p style={{color: '#B0B0B0'}}>({correctAnswers} de {total} correctos)</p>
                     </div>
                     <div className="flex justify-center gap-4">
-                        <button onClick={resetEverything} className="text-white font-bold py-2 px-4 rounded-full transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #667eea, #764ba2)', border: 'none', cursor: 'pointer'}}>Volver al Inicio</button>
-                        <button onClick={() => startPractice(examples)} className="text-white font-bold py-2 px-4 rounded-full transition-all transform hover:-translate-y-1" style={{background: 'linear-gradient(45deg, #4ECDC4, #44A08D)', border: 'none', cursor: 'pointer'}}>Practicar de Nuevo</button>
+                        <button onClick={resetEverything} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300" style={{background: 'linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 140, 0, 0.9), rgba(255, 165, 0, 0.9))', border: 'none', cursor: 'pointer'}}>Volver al Inicio</button>
+                        <button onClick={() => startPractice(examples)} className="text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300" style={{background: 'linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 140, 0, 0.9), rgba(255, 165, 0, 0.9))', border: 'none', cursor: 'pointer'}}>Practicar de Nuevo</button>
                     </div>
                 </div>
             );
@@ -232,8 +408,7 @@
             const [appState, setAppState] = React.useState('input'); // 'input', 'practice', 'results'
             const [formState, setFormState] = React.useState({
                 grammarTitle: '',
-                examplesText: '',
-                customGrammarPattern: ''
+                examplesText: ''
             });
             const [examples, setExamples] = React.useState([]);
             const [grammarPattern, setGrammarPattern] = React.useState([]);
@@ -280,18 +455,7 @@
                 });
 
                 setExamples(processed);
-                
-                if (formState.customGrammarPattern.trim()) {
-                    try {
-                        const pattern = JSON.parse(formState.customGrammarPattern);
-                        setGrammarPattern(pattern);
-                    } catch (e) {
-                        alert('El patrón gramatical personalizado no es un JSON válido.');
-                        return;
-                    }
-                } else {
-                    setGrammarPattern(processed[0].pattern);
-                }
+                setGrammarPattern(processed[0].pattern);
                 
                 startPractice(processed);
             };
@@ -345,7 +509,7 @@
             };
             
             const resetEverything = () => {
-                setFormState({ grammarTitle: '', examplesText: '', customGrammarPattern: '' });
+                setFormState({ grammarTitle: '', examplesText: '' });
                 setAppState('input');
             };
 
@@ -508,6 +672,42 @@
         const container = document.getElementById('root');
         const root = ReactDOM.createRoot(container);
         root.render(<App />);
+    </script>
+    
+    <script>
+        // Script para generar hojas cayendo
+        function createFallingLeaf() {
+            const leaf = document.createElement('div');
+            leaf.className = 'leaf';
+            leaf.innerHTML = Math.random() > 0.5 ? '🍂' : '🍃';
+            
+            // Posición aleatoria en el ancho de la pantalla
+            leaf.style.left = Math.random() * 100 + '%';
+            
+            // Retraso aleatorio para cada hoja
+            leaf.style.animationDelay = Math.random() * 5 + 's';
+            
+            // Añadir ligera variación en la duración
+            const baseDuration = parseFloat(getComputedStyle(leaf).animationDuration);
+            leaf.style.animationDuration = (baseDuration + (Math.random() - 0.5) * 4) + 's';
+            
+            document.getElementById('falling-leaves').appendChild(leaf);
+            
+            // Remover la hoja después de que termine la animación
+            setTimeout(() => {
+                if (leaf.parentNode) {
+                    leaf.parentNode.removeChild(leaf);
+                }
+            }, 20000);
+        }
+        
+        // Crear hojas cayendo cada cierto tiempo
+        setInterval(createFallingLeaf, 1000);
+        
+        // Crear algunas hojas iniciales
+        for (let i = 0; i < 8; i++) {
+            setTimeout(createFallingLeaf, i * 600);
+        }
     </script>
 </body>
 </html>

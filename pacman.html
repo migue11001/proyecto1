@@ -21,9 +21,31 @@
         /* Estilos y animaciones personalizadas */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-image: url('2html.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
             color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 0;
+        }
+        
+        #root {
+            position: relative;
+            z-index: 1;
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -54,26 +76,98 @@
             animation: pulseOnce 0.6s ease-in-out;
         }
 
-        /* Glass morphism styles */
+        /* Glass morphism styles - Autumn theme */
         .glass-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(220, 20, 60, 0.15) 0%, 
+                rgba(255, 140, 0, 0.12) 30%,
+                rgba(255, 165, 0, 0.15) 60%,
+                rgba(178, 34, 34, 0.12) 100%);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px) saturate(120%);
+            box-shadow: 
+                0 15px 50px rgba(220, 20, 60, 0.2),
+                0 10px 30px rgba(255, 140, 0, 0.15);
+            border: 2px solid rgba(255, 140, 0, 0.3);
+            position: relative;
+            z-index: 2;
         }
 
         .glass-header {
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(220, 20, 60, 0.12) 0%, 
+                rgba(255, 140, 0, 0.10) 30%,
+                rgba(255, 165, 0, 0.12) 60%,
+                rgba(178, 34, 34, 0.10) 100%);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(15px) saturate(120%);
+            box-shadow: 
+                0 12px 40px rgba(220, 20, 60, 0.15),
+                0 8px 25px rgba(255, 140, 0, 0.12);
+            border: 2px solid rgba(255, 140, 0, 0.25);
+            position: relative;
+            z-index: 2;
         }
 
         /* Canvas responsive */
         .game-canvas {
             max-width: 100%;
             height: auto;
+        }
+
+        /* Efecto de hojas cayendo */
+        .falling-leaves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .leaf {
+            position: absolute;
+            opacity: 0.2;
+            font-size: 1.5em;
+            animation: fall linear infinite;
+        }
+        
+        .leaf:nth-child(odd) {
+            color: #DC143C;
+            animation-duration: 8s;
+        }
+        
+        .leaf:nth-child(even) {
+            color: #FF8C00;
+            animation-duration: 12s;
+        }
+        
+        .leaf:nth-child(3n) {
+            color: #FFA500;
+            animation-duration: 10s;
+        }
+        
+        .leaf:nth-child(4n) {
+            color: #B22222;
+            animation-duration: 15s;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 0.3;
+            }
+            10% {
+                opacity: 0.2;
+            }
+            90% {
+                opacity: 0.1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         /* Mobile controls */
@@ -86,10 +180,12 @@
         .control-btn {
             width: 60px;
             height: 60px;
-            background: rgba(255, 215, 0, 0.9);
-            border: 2px solid #FFD700;
+            background: linear-gradient(45deg, 
+                rgba(220, 20, 60, 0.9), 
+                rgba(255, 140, 0, 0.9));
+            border: 2px solid rgba(255, 140, 0, 0.8);
             border-radius: 50%;
-            color: black;
+            color: white;
             font-size: 24px;
             font-weight: bold;
             display: flex;
@@ -132,6 +228,8 @@
     </style>
 </head>
 <body>
+    <!-- Efecto de hojas cayendo -->
+    <div class="falling-leaves" id="falling-leaves"></div>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -689,12 +787,12 @@
           return (
             <div className="min-h-screen p-4 sm:p-6 md:p-8">
               <div className="max-w-4xl mx-auto">
-                <header className="glass-header text-white p-6 shadow-lg mb-6">
+                <header className="glass-header text-white p-6 shadow-lg mb-6 w-[min(90vw,560px)] mx-auto">
                   <h1 className="text-3xl font-bold" style={{color: '#FFD700', textShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'}}>🎮 Pac-Man Secuencial</h1>
                   <p className="mt-2 opacity-90" style={{color: '#E0E0E0'}}>Come las palabras en orden secuencial. ¡Huye de los fantasmas!</p>
                 </header>
                 
-                <main className="glass-card p-6 animate-fade-in">
+                <main className="glass-card p-6 animate-fade-in w-[min(90vw,560px)] mx-auto">
                   <div className="flex items-center justify-between text-sm mb-4 font-mono">
                     <div className="text-yellow-300">SCORE: {score}</div>
                     <div className="text-red-400">LIVES: {lives}</div>
@@ -752,8 +850,13 @@
                   )}
 
                   {showStart && (
-                    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10 rounded-xl overflow-y-auto">
-                      <div className="glass-card p-8 text-center w-[min(90vw,560px)] max-h-[90vh] overflow-y-auto animate-pop-in">
+                      <div className="absolute inset-0 flex items-center justify-center z-10 p-4">
+                        <div className="glass-card p-6 text-center w-[min(90vw,560px)] mx-auto max-h-[90vh] overflow-y-auto animate-pop-in" style={{
+                          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(30, 30, 30, 0.9) 100%)',
+                          backdropFilter: 'blur(20px) saturate(120%)',
+                          border: '2px solid rgba(255, 215, 0, 0.3)',
+                          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7), 0 10px 30px rgba(255, 215, 0, 0.2)'
+                        }}>
                         <h2 className="text-3xl text-yellow-300 mb-6 font-mono animate-pulse">🎮 PAC‑MAN SECUENCIAL</h2>
                         
                         <div className="mb-6">
@@ -781,8 +884,8 @@
                           🚀 START GAME
                         </button>
                         <p className="text-xs text-zinc-400 mt-4">🎮 Usa las FLECHAS para moverte</p>
+                        </div>
                       </div>
-                    </div>
                   )}
                 </main>
               </div>
@@ -793,6 +896,42 @@
         const container = document.getElementById('root');
         const root = ReactDOM.createRoot(container);
         root.render(<SequentialPacman />);
+    </script>
+    
+    <script>
+        // Script para generar hojas cayendo
+        function createFallingLeaf() {
+            const leaf = document.createElement('div');
+            leaf.className = 'leaf';
+            leaf.innerHTML = Math.random() > 0.5 ? '🍂' : '🍃';
+            
+            // Posición aleatoria en el ancho de la pantalla
+            leaf.style.left = Math.random() * 100 + '%';
+            
+            // Retraso aleatorio para cada hoja
+            leaf.style.animationDelay = Math.random() * 5 + 's';
+            
+            // Añadir ligera variación en la duración
+            const baseDuration = parseFloat(getComputedStyle(leaf).animationDuration);
+            leaf.style.animationDuration = (baseDuration + (Math.random() - 0.5) * 4) + 's';
+            
+            document.getElementById('falling-leaves').appendChild(leaf);
+            
+            // Remover la hoja después de que termine la animación
+            setTimeout(() => {
+                if (leaf.parentNode) {
+                    leaf.parentNode.removeChild(leaf);
+                }
+            }, 20000);
+        }
+        
+        // Crear hojas cayendo cada cierto tiempo
+        setInterval(createFallingLeaf, 1200);
+        
+        // Crear algunas hojas iniciales
+        for (let i = 0; i < 6; i++) {
+            setTimeout(createFallingLeaf, i * 800);
+        }
     </script>
 </body>
 </html>
